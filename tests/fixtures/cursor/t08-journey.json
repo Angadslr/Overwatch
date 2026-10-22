@@ -1,0 +1,584 @@
+{
+  "captureDate": "2026-10-22",
+  "namedRun": "T08 native vertical-slice smoke test",
+  "nativeSurface": "Cursor Agent Chat in the same Extension Development Host window as the supervision tree",
+  "host": {
+    "cursorVersion": "3.26.16",
+    "editorApiVersion": "1.128.0",
+    "extensionHostNode": "24.19.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "trusted": true
+  },
+  "sourceProvenance": "Ordinary native Agent read/edit, observed directly through the native UI; not injected hook input or a CLI agent",
+  "sourceJournal": [
+    {
+      "journalVersion": 1,
+      "ingestSequence": 1,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "af6d5522-7d9a-45d1-a2d3-691c37ffdd0c",
+        "receivedAt": "2026-10-22T20:40:35.189Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "af6d5522-7d9a-45d1-a2d3-691c37ffdd0c",
+            "sourceEvent": "preToolUse",
+            "receivedAt": "2026-10-22T20:40:35.189Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "7ff44ddec6924f22a79605cb954fe7a363b54ffbf3409cc353f304fabb7ce1d3",
+            "tool": "read",
+            "pathHash": "d7f71422c495d6dca470879619504facf963b57832a21393f2ce594dd1ef7e62",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 2,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 2,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "532e1054-9d10-486a-bcd6-470812f4e87a",
+        "receivedAt": "2026-10-22T20:40:35.189Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "532e1054-9d10-486a-bcd6-470812f4e87a",
+            "sourceEvent": "preToolUse",
+            "receivedAt": "2026-10-22T20:40:35.189Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "df5beb0b6d4a42582a6a5ba16bc692ce26a199a74d8f19e40b767b07023acb5f",
+            "tool": "read",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 2,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 3,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "c4c0930f-071e-4d69-a1d7-e711d621ac04",
+        "receivedAt": "2026-10-22T20:40:35.293Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "c4c0930f-071e-4d69-a1d7-e711d621ac04",
+            "sourceEvent": "beforeReadFile",
+            "receivedAt": "2026-10-22T20:40:35.293Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "df5beb0b6d4a42582a6a5ba16bc692ce26a199a74d8f19e40b767b07023acb5f",
+            "tool": "unknown",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 2,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 4,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "c5f7fc9f-ab0f-4d66-a24d-c97b5d214c95",
+        "receivedAt": "2026-10-22T20:40:35.293Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "c5f7fc9f-ab0f-4d66-a24d-c97b5d214c95",
+            "sourceEvent": "beforeReadFile",
+            "receivedAt": "2026-10-22T20:40:35.293Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "7ff44ddec6924f22a79605cb954fe7a363b54ffbf3409cc353f304fabb7ce1d3",
+            "tool": "unknown",
+            "pathHash": "d7f71422c495d6dca470879619504facf963b57832a21393f2ce594dd1ef7e62",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 2,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 5,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "1f34b3c5-9637-4d8e-91ef-75fd8ec47573",
+        "receivedAt": "2026-10-22T20:40:35.324Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "1f34b3c5-9637-4d8e-91ef-75fd8ec47573",
+            "sourceEvent": "postToolUse",
+            "receivedAt": "2026-10-22T20:40:35.324Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "df5beb0b6d4a42582a6a5ba16bc692ce26a199a74d8f19e40b767b07023acb5f",
+            "tool": "read",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ],
+            "durationMs": 3.72
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 6,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "9e67e7dc-e6ea-49ed-99c9-e5344ac76830",
+        "receivedAt": "2026-10-22T20:40:35.318Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "9e67e7dc-e6ea-49ed-99c9-e5344ac76830",
+            "sourceEvent": "postToolUse",
+            "receivedAt": "2026-10-22T20:40:35.318Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "7ff44ddec6924f22a79605cb954fe7a363b54ffbf3409cc353f304fabb7ce1d3",
+            "tool": "read",
+            "pathHash": "d7f71422c495d6dca470879619504facf963b57832a21393f2ce594dd1ef7e62",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ],
+            "durationMs": 3.792
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 7,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "b067430d-5079-4f95-af4f-a72811e590d6",
+        "receivedAt": "2026-10-22T20:40:37.461Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "b067430d-5079-4f95-af4f-a72811e590d6",
+            "sourceEvent": "preToolUse",
+            "receivedAt": "2026-10-22T20:40:37.461Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "8b152d79316fe6cfef3b2248da2173f27efef7eaed04d219707a1fe84996195f",
+            "tool": "read",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 2,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 8,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "3b5b9d19-3dbe-4efc-abaa-d0ea87772fc7",
+        "receivedAt": "2026-10-22T20:40:37.507Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "3b5b9d19-3dbe-4efc-abaa-d0ea87772fc7",
+            "sourceEvent": "beforeReadFile",
+            "receivedAt": "2026-10-22T20:40:37.507Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "8b152d79316fe6cfef3b2248da2173f27efef7eaed04d219707a1fe84996195f",
+            "tool": "unknown",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 2,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 9,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "c82b3b8b-67fa-4b7a-b09e-316e18d31f27",
+        "receivedAt": "2026-10-22T20:40:37.530Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "c82b3b8b-67fa-4b7a-b09e-316e18d31f27",
+            "sourceEvent": "postToolUse",
+            "receivedAt": "2026-10-22T20:40:37.530Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "8b152d79316fe6cfef3b2248da2173f27efef7eaed04d219707a1fe84996195f",
+            "tool": "read",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ],
+            "durationMs": 1.354
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 10,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "033101a3-8e32-4c6b-b81f-a11bb8426ad2",
+        "receivedAt": "2026-10-22T20:40:37.633Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "033101a3-8e32-4c6b-b81f-a11bb8426ad2",
+            "sourceEvent": "preToolUse",
+            "receivedAt": "2026-10-22T20:40:37.633Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "8b152d79316fe6cfef3b2248da2173f27efef7eaed04d219707a1fe84996195f",
+            "tool": "edit",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 3,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 11,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "7fa3b10e-d2af-4e25-953c-87675d190407",
+        "receivedAt": "2026-10-22T20:40:37.707Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "7fa3b10e-d2af-4e25-953c-87675d190407",
+            "sourceEvent": "afterFileEdit",
+            "receivedAt": "2026-10-22T20:40:37.707Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "tool": "unknown",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ]
+          },
+          "counters": {
+            "unknownFields": 2,
+            "sensitiveFields": 2,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 12,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "db1b37d3-5974-4e28-9384-59bf9232e8f4",
+        "receivedAt": "2026-10-22T20:40:37.750Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "db1b37d3-5974-4e28-9384-59bf9232e8f4",
+            "sourceEvent": "postToolUse",
+            "receivedAt": "2026-10-22T20:40:37.750Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "callId": "8b152d79316fe6cfef3b2248da2173f27efef7eaed04d219707a1fe84996195f",
+            "tool": "edit",
+            "pathHash": "31422f61468a909added7f3c4c3f15e6bf8eb288491546bf9ff81a43c04d3012",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ],
+            "durationMs": 8.038
+          },
+          "counters": {
+            "unknownFields": 1,
+            "sensitiveFields": 4,
+            "invalidFields": 0
+          }
+        }
+      }
+    },
+    {
+      "journalVersion": 1,
+      "ingestSequence": 13,
+      "envelope": {
+        "transportVersion": 1,
+        "eventId": "dc6115ab-5841-4da7-abaa-6fc71fff45e6",
+        "receivedAt": "2026-10-22T20:40:39.315Z",
+        "collectorId": "ef88ab59-a4f3-4056-87f2-a5c0c7983176",
+        "environmentId": "local-darwin-arm64",
+        "workspaceId": "893b3c0587a7e07458bedf6ab78f03b1d5c50d03dbd982f987dd4fce5e9bbdb9",
+        "result": {
+          "metadata": {
+            "metadataVersion": 1,
+            "eventId": "dc6115ab-5841-4da7-abaa-6fc71fff45e6",
+            "sourceEvent": "stop",
+            "receivedAt": "2026-10-22T20:40:39.315Z",
+            "sourceVersion": "3.26.16",
+            "conversationId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+            "generationId": "f78617d81e23a6b3d8f84831fc1e17c50d21c57ddb590b3a6387dcf5a1f00ffc",
+            "sessionId": "fe06d6597d04a1d4141861835a677b5696b52a06175da32b67e3d40709a2c3cf",
+            "tool": "unknown",
+            "workspaceRootHashes": [
+              "c9b89b45213bad94dcc550389e6d514339a1c5da14e4c1334d26ed981f386856"
+            ],
+            "status": "completed"
+          },
+          "counters": {
+            "unknownFields": 8,
+            "sensitiveFields": 2,
+            "invalidFields": 0
+          }
+        }
+      }
+    }
+  ],
+  "viewAtCapture": {
+    "recordedAt": "2026-10-22T20:41:11.617Z",
+    "nativeDelivery": "requires-manual-action-trace",
+    "enabled": true,
+    "status": "Native source activity · persistence and acceptance unverified",
+    "cleanup": "not-installed",
+    "evidenceCount": 13,
+    "renderSamples": [
+      {
+        "eventId": "9e67e7dc-e6ea-49ed-99c9-e5344ac76830",
+        "receivedAt": "2026-10-22T20:40:35.318Z",
+        "treeItemServedAt": "2026-10-22T20:40:35.513Z",
+        "latencyMs": 195
+      },
+      {
+        "eventId": "1f34b3c5-9637-4d8e-91ef-75fd8ec47573",
+        "receivedAt": "2026-10-22T20:40:35.324Z",
+        "treeItemServedAt": "2026-10-22T20:40:35.513Z",
+        "latencyMs": 189
+      },
+      {
+        "eventId": "c82b3b8b-67fa-4b7a-b09e-316e18d31f27",
+        "receivedAt": "2026-10-22T20:40:37.530Z",
+        "treeItemServedAt": "2026-10-22T20:40:37.743Z",
+        "latencyMs": 213
+      },
+      {
+        "eventId": "033101a3-8e32-4c6b-b81f-a11bb8426ad2",
+        "receivedAt": "2026-10-22T20:40:37.633Z",
+        "treeItemServedAt": "2026-10-22T20:40:37.743Z",
+        "latencyMs": 110
+      },
+      {
+        "eventId": "db1b37d3-5974-4e28-9384-59bf9232e8f4",
+        "receivedAt": "2026-10-22T20:40:37.750Z",
+        "treeItemServedAt": "2026-10-22T20:40:37.924Z",
+        "latencyMs": 174
+      },
+      {
+        "eventId": "7fa3b10e-d2af-4e25-953c-87675d190407",
+        "receivedAt": "2026-10-22T20:40:37.707Z",
+        "treeItemServedAt": "2026-10-22T20:40:37.924Z",
+        "latencyMs": 217
+      }
+    ],
+    "entries": [
+      {
+        "relativePath": "read.txt",
+        "evidence": "Read completed · source report · 36s ago",
+        "sourceSessionId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+        "eventId": "9e67e7dc-e6ea-49ed-99c9-e5344ac76830",
+        "receivedAt": "2026-10-22T20:40:35.318Z"
+      },
+      {
+        "relativePath": "edit.txt",
+        "evidence": "Read completed · source report · 36s ago",
+        "sourceSessionId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+        "eventId": "1f34b3c5-9637-4d8e-91ef-75fd8ec47573",
+        "receivedAt": "2026-10-22T20:40:35.324Z"
+      },
+      {
+        "relativePath": "edit.txt",
+        "evidence": "Read completed · source report · 34s ago",
+        "sourceSessionId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+        "eventId": "c82b3b8b-67fa-4b7a-b09e-316e18d31f27",
+        "receivedAt": "2026-10-22T20:40:37.530Z"
+      },
+      {
+        "relativePath": "edit.txt",
+        "evidence": "Tool completed · source report · 33s ago",
+        "sourceSessionId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+        "eventId": "db1b37d3-5974-4e28-9384-59bf9232e8f4",
+        "receivedAt": "2026-10-22T20:40:37.750Z"
+      },
+      {
+        "relativePath": "edit.txt",
+        "evidence": "Edit reported · save unverified · 33s ago",
+        "sourceSessionId": "1f6922ce90c05c62a8bc48d6da994918d3cb0e48a7a725bcd56460682b4852d8",
+        "eventId": "7fa3b10e-d2af-4e25-953c-87675d190407",
+        "receivedAt": "2026-10-22T20:40:37.707Z"
+      }
+    ]
+  },
+  "manualUiChecks": {
+    "nativeReadAndEditCompleted": true,
+    "sourceSessionRelativePathsEvidenceAndAgeVisible": true,
+    "selectingReadOpenedIntendedCurrentFixtureFile": true,
+    "inventedEditKeptBeforeReload": true
+  },
+  "latency": {
+    "measurement": "Hook receipt to first native TreeDataProvider.getTreeItem request, not pixel-paint latency",
+    "sampleCount": 6,
+    "minMs": 110,
+    "maxMs": 217,
+    "firstScreenObservation": {
+      "readAgeSeconds": 16,
+      "editReportAgeSeconds": 13,
+      "readVisibilityUpperBoundMs": 17000,
+      "editReportVisibilityUpperBoundMs": 14000,
+      "note": "Includes the automation observation delay; not a performance percentile."
+    }
+  },
+  "disabledVerification": {
+    "publisherEnabled": false,
+    "ownedHooksPresent": false,
+    "collectorLeasePresent": false,
+    "readyFiles": 0,
+    "journalBeforeDisabledRead": 13,
+    "journalAfterDisabledRead": 13,
+    "nativeReadCompleted": true
+  }
+}

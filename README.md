@@ -1,10 +1,10 @@
 # Overwatch
 
-Local, observation-only supervision for native Cursor Agent Chat. The repository currently implements the **Phase A native integration probe**, not the personal alpha UI. See [todo.md](todo.md) for execution status and [docs/compatibility.md](docs/compatibility.md) for measured limits.
+Local, observation-only supervision for native Cursor Agent Chat. The repository implements the **Phase A native integration probe** and the T04–T08 contract, Go helper, durable transport, evidence core and native fixture file-activity tree. T08 and G1 are complete; stable conversation aliases follow in T09. See [todo.md](todo.md) for execution status and [docs/compatibility.md](docs/compatibility.md) for measured limits.
 
 ## Run the probe
 
-Requires macOS Apple Silicon, Cursor installed in `/Applications/Cursor.app`, and Node.js 22 or later. The qualified development Node is 24.21.0. Production will use the planned Go helper; this disposable discovery probe deliberately uses Node and makes no startup-performance claim.
+Requires macOS Apple Silicon, Cursor installed in `/Applications/Cursor.app`, and Node.js 22 or later. The qualified development Node is 24.21.0. The separate Go helper foundation is implemented in T05; this disposable discovery probe continues to use Node and makes no startup-performance claim.
 
 ```sh
 npm ci --ignore-scripts
@@ -23,7 +23,7 @@ Use the native smoke instructions in [docs/native-smoke-test.md](docs/native-smo
 
 Run **Overwatch Probe: Disable and Reload Fixture Window** when finished. Cursor 3.25.9 can retain cached project hooks after file deletion, so clearing the invocation requires a reload. Plain **Disable** removes the collection marker and prevents the corrected helper from persisting telemetry, but cached processes may still launch until reload. Normal extension-host shutdown also removes an unchanged owned project-hook file. If it was modified after installation, cleanup preserves it and reports `modified-preserved`; inspect and remove only the probe entries manually. A process crash can leave the fixture hook file behind. Do not promote this fixture-only lifecycle to production without T20/T21 ownership and recovery work.
 
-## Implemented boundaries
+## Probe boundaries
 
 - Workspace trust, local macOS arm64, and an explicit invented-fixture marker gate execution.
 - The helper drops content, prompts, commands, outputs, email, reasoning, and unknown fields before publication. Source identifiers are hashed; only named invented fixture paths are recorded.
@@ -31,4 +31,16 @@ Run **Overwatch Probe: Disable and Reload Fixture Window** when finished. Cursor
 - Permission-bearing hooks return `{"permission":"allow"}`; the installed observational hooks return `{}`. Nothing injects prompts or changes tool input.
 - The tests use Node's test runner. Unit tests compile TypeScript into `.local/unit-tests`; integration tests launch the actual bundled hook process. These are distinct from real Cursor evidence.
 
-A machine-specific probe VSIX can be rebuilt with `npm run package:probe`; its native install/read/edit/disable/uninstall was verified. See `docs/probe-package-verification.json` for the historical 0.0.2 package and [Phase A qualification](docs/phase-a-qualification.md) for the tested 0.0.3 checksum and cleanup. No alpha VSIX, journal, supervision view, export, or remote/cloud adapter is claimed. T01–T03 and G0 are complete for the reduced local Cursor 3.26.16/macOS arm64 profile. See [qualification](docs/phase-a-qualification.md) for the native matrix and explicit limits; T04 is complete; see the [event-v1 contract](docs/event-contract.md). T05 is next.
+A machine-specific probe VSIX can be rebuilt with `npm run package:probe`; its native install/read/edit/disable/uninstall was verified. See `docs/probe-package-verification.json` for the historical 0.0.2 package and [Phase A qualification](docs/phase-a-qualification.md) for the tested 0.0.3 checksum and cleanup. The probe package remains discovery-only; the T08 supervision slice runs in development mode. Alpha packaging, export and remote/cloud adapters remain later tasks.
+
+The separate Go helper accepts `HOOK STORAGE`, projects safe metadata, and atomically publishes through the [T06 local transport](docs/local-transport.md). Its source journal supports validated recovery, durable ordering and deduplication. The [T07 adapter/reducer](docs/cursor-file-projection.md) keeps attempts, completions and edit reports separate. T08 connects these modules to owned project hooks and a native tree. A fixed allowlist maps six invented fixture names to current local files; general physical path identity remains T10. Go 1.26+ supports `npm run build:helper` and `npm run test:helper`; the wrapper uses the ignored local toolchain when present. `test:integration` now builds and exercises the actual Go helper as well as the Node discovery probe.
+
+## Run the T08 native supervision slice
+
+```sh
+npm run supervision:launch
+```
+
+In the resulting trusted invented-fixture window, run **Agent Supervision: Enable in Fixture Workspace**. Ask ordinary native Agent Chat to read `read.txt` and edit `edit.txt`. The Agent Supervision sidebar shows source-session identity, relative paths, evidence and age. Selecting a row opens its current fixture file. Use **Agent Supervision: Disable and Reload Fixture Window** when finished; resolve any pending invented edit review before reload.
+
+`npm run test:extension` runs the installed Cursor extension host in an isolated test profile. It uses synthetic metadata and is separate from the completed ordinary native smoke run. No global extension installation or real-project hooks are required. See [T08 verification and limits](docs/t08-vertical-slice.md). The UI reports source completion and edit reports; disk persistence, acceptance and child file ownership remain unknown.

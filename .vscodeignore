@@ -1,10 +1,17 @@
 node_modules/**
 .local/**
+.serena/**
+.freebuff/**
 tests/**
 src/**
 scripts/**
 helper/**
+dist/cursor-supervision-hook
+dist/transport.cjs
+dist/cursor-projection.cjs
+dist/file-activity.cjs
 tsconfig.json
 **/*.map
 *.vsix
 docs/probe-package-verification.json
+docs/t08-extension-host-verification.json

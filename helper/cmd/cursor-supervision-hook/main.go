@@ -7,6 +7,7 @@ import (
 
 	"overwatch/helper/internal/input"
 	"overwatch/helper/internal/output"
+	"overwatch/helper/internal/spool"
 )
 
 const invocationBudget = 1500 * time.Millisecond
@@ -52,7 +53,14 @@ func run(args []string, stdin io.Reader, stdout io.Writer, consume func(input.Re
 }
 
 func main() {
-	// T05 installs no hooks and persists nothing. T06 connects the consumer.
-	// No raw payloads, source errors, launcher arguments or paths go to stderr.
-	run(os.Args[1:], os.Stdin, os.Stdout, nil)
+	args := os.Args[1:]
+	var consume func(input.Result) error
+	if len(args) == 2 {
+		path := args[1]
+		consume = func(result input.Result) error { return spool.PublishResult(path, result) }
+		args = args[:1]
+	}
+	// Only the trusted launcher selects a spool path; no payload can redirect it.
+	// Response-only invocation remains available without a collector.
+	run(args, os.Stdin, os.Stdout, consume)
 }

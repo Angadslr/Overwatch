@@ -9,8 +9,15 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "types": ["node", "vscode"],
+    "types": [
+      "node",
+      "vscode"
+    ],
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "tests/unit/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "tests/unit/**/*.ts",
+    "tests/extension/**/*.ts"
+  ]
 }

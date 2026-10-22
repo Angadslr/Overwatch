@@ -52,6 +52,7 @@ type Metadata struct {
 	SubagentID           string   `json:"subagentId,omitempty"`
 	Tool                 string   `json:"tool"`
 	PathHash             string   `json:"pathHash,omitempty"`
+	WorkspaceRootHashes  []string `json:"workspaceRootHashes,omitempty"`
 	Status               string   `json:"status,omitempty"`
 	FailureType          string   `json:"failureType,omitempty"`
 	Interrupted          *bool    `json:"interrupted,omitempty"`
@@ -91,6 +92,7 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 	var counters Counters
 	m := &Metadata{Version: 1, SourceEvent: hook, ReceivedAt: time.Now().UTC().Format("2006-01-02T15:04:05.000Z"), Tool: "unknown"}
 	matched := false
+	pathHashes := make(map[string]bool)
 	valid := fields(data, func(key string, raw json.RawMessage) {
 		switch key {
 		case "hook_event_name":
@@ -111,7 +113,9 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 		case "subagent_id":
 			m.SubagentID = opaque(raw, "subagent", 256, &counters)
 		case "file_path":
-			m.PathHash = opaque(raw, "path-hint", 4096, &counters)
+			if hash := opaque(raw, "path-hint", 4096, &counters); hash != "" {
+				pathHashes[hash] = true
+			}
 		case "cursor_version":
 			if value, ok := text(raw, 64); ok && versionPattern.MatchString(value) {
 				m.SourceVersion = value
@@ -144,9 +148,9 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 				if !fields(raw, func(key string, value json.RawMessage) {
 					switch key {
 					case "file_path", "path", "target_file":
-						// Do not infer precedence between conflicting path aliases.
-						_ = value
-						counters.SensitiveFields++
+						if hash := opaque(value, "path-hint", 4096, &counters); hash != "" {
+							pathHashes[hash] = true
+						}
 					default:
 						countDropped(key, &counters)
 					}
@@ -156,7 +160,30 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 			} else {
 				counters.SensitiveFields++
 			}
-		case "workspace_roots", "cwd":
+		case "workspace_roots":
+			d := json.NewDecoder(bytes.NewReader(raw))
+			if token, err := d.Token(); err == nil && token == json.Delim('[') {
+				items := 0
+				for d.More() {
+					if items >= 16 {
+						counters.InvalidFields++
+						m.WorkspaceRootHashes = nil
+						break
+					}
+					items++
+					var item json.RawMessage
+					if d.Decode(&item) != nil {
+						counters.InvalidFields++
+						break
+					}
+					if key := opaque(item, "workspace-root", 4096, &counters); key != "" {
+						m.WorkspaceRootHashes = append(m.WorkspaceRootHashes, key)
+					}
+				}
+			} else {
+				counters.InvalidFields++
+			}
+		case "cwd":
 			counters.SensitiveFields++
 		default:
 			countDropped(key, &counters)
@@ -170,6 +197,14 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 	}
 	if counters.Gap != "" {
 		return Result{Counters: counters}
+	}
+	if len(pathHashes) == 1 {
+		for hash := range pathHashes {
+			m.PathHash = hash
+		}
+	}
+	if len(pathHashes) > 1 {
+		counters.InvalidFields++
 	}
 	id := make([]byte, 16)
 	if _, err := io.ReadFull(entropy, id); err != nil {

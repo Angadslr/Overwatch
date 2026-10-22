@@ -1,0 +1,18 @@
+{
+  "suite": "T08 real Cursor extension host",
+  "nativeDelivery": false,
+  "editorApiVersion": "1.128.0",
+  "extensionHostNode": "24.19.0",
+  "startedAt": "2026-10-22T20:49:54.999Z",
+  "finishedAt": "2026-10-22T20:49:56.031Z",
+  "passed": true,
+  "checks": [
+    "trusted owned collection enabled",
+    "real TreeItems contain relative paths identity evidence and age",
+    "selection opens intended current fixture file",
+    "missing current file is reported accurately",
+    "content markers absent from extension projection",
+    "disable removes owned hook config and stops publishing",
+    "cached command remains observational and cannot publish after disable"
+  ]
+}

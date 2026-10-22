@@ -47,21 +47,83 @@
       {
         "command": "overwatch.probe.report",
         "title": "Overwatch Probe: Show Compatibility Report"
+      },
+      {
+        "command": "overwatch.supervision.enable",
+        "title": "Agent Supervision: Enable in Fixture Workspace"
+      },
+      {
+        "command": "overwatch.supervision.disable",
+        "title": "Agent Supervision: Disable"
+      },
+      {
+        "command": "overwatch.supervision.disableAndReload",
+        "title": "Agent Supervision: Disable and Reload Fixture Window"
+      },
+      {
+        "command": "overwatch.supervision.refresh",
+        "title": "Agent Supervision: Refresh File Activity"
+      },
+      {
+        "command": "overwatch.supervision.openFile",
+        "title": "Agent Supervision: Open Current Fixture File"
+      },
+      {
+        "command": "overwatch.supervision.report",
+        "title": "Agent Supervision: Save Collection Report"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "overwatch-supervision",
+          "title": "Agent Supervision",
+          "icon": "assets/supervision.svg"
+        }
+      ]
+    },
+    "views": {
+      "overwatch-supervision": [
+        {
+          "id": "overwatch.supervision.files",
+          "name": "Native File Activity"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "overwatch.supervision.enable",
+          "when": "view == overwatch.supervision.files",
+          "group": "navigation@1"
+        },
+        {
+          "command": "overwatch.supervision.disable",
+          "when": "view == overwatch.supervision.files",
+          "group": "navigation@2"
+        },
+        {
+          "command": "overwatch.supervision.refresh",
+          "when": "view == overwatch.supervision.files",
+          "group": "navigation@3"
+        }
+      ]
+    }
   },
   "scripts": {
     "generate:contracts": "node scripts/generate-contracts.mjs",
     "check:contracts": "node scripts/generate-contracts.mjs --check",
-    "build:helper": "cd helper && go build -trimpath -o ../dist/cursor-supervision-hook ./cmd/cursor-supervision-hook",
-    "test:helper": "cd helper && go test ./...",
+    "build:helper": "node scripts/go-helper.mjs build",
+    "test:helper": "node scripts/go-helper.mjs test",
     "check": "npm run check:contracts && tsc --noEmit",
     "build": "node scripts/build.mjs",
     "test:unit": "node scripts/test-unit.mjs",
-    "test:integration": "npm run build && node --test tests/integration/*.test.mjs",
+    "test:integration": "npm run build && npm run build:helper && node --test tests/integration/*.test.mjs",
     "probe:launch": "npm run build && node scripts/launch-probe.mjs",
     "probe:environment": "node scripts/environment.mjs",
-    "package:probe": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license --no-rewrite-relative-links --out overwatch-native-probe-0.0.3.vsix"
+    "package:probe": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license --no-rewrite-relative-links --out overwatch-native-probe-0.0.3.vsix",
+    "test:extension": "npm run build && npm run build:helper && node scripts/test-extension.mjs",
+    "supervision:launch": "npm run build && npm run build:helper && node scripts/launch-supervision.mjs"
   },
   "devDependencies": {
     "@types/node": "22.18.10",

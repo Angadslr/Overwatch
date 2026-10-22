@@ -2,7 +2,7 @@
 
 Prepared for Angad · 20 October 2026.
 
-Execution started 21 October 2026. T01–T03 are complete. G0 passed on 21 October for a reduced local observation profile on Cursor 3.26.16/macOS arm64; T01 also retains historical 3.25.9 evidence. Unsupported child-to-tool joins, session-end delivery, shell/MCP file internals, and acceptance inference remain explicit. T04 subsequently completed the normalized event contract; T05 and later work has not started. This file tracks execution, not completion of the planning request. Follow [plan.md](plan.md) for architecture and product semantics and [HANDOFF.md](HANDOFF.md) for scope.
+Execution started 21 October 2026. T01–T08 and G1 are complete. G0 passed on 21 October for a reduced local observation profile on Cursor 3.26.16/macOS arm64; T01 also retains historical 3.25.9 evidence. Unsupported child-to-tool joins, session-end delivery, shell/MCP file internals, and acceptance inference remain explicit. T04 supplies the normalized contract; T05–T07 supply the Go privacy pipeline, bounded durable transport and read/edit evidence projection. The native fixture tree is implemented; stable aliases follow in T09 and general physical/visible paths remain T10. This file tracks execution, not completion of the planning request. Follow [plan.md](plan.md) for architecture and product semantics and [HANDOFF.md](HANDOFF.md) for scope.
 
 ## Execution conventions
 
@@ -10,7 +10,7 @@ One implementation owner can complete the personal alpha. Responsibility labels 
 
 Each task must leave usable code or a concrete discovery artifact. Check it off only after its acceptance criteria and verification pass. Record actual command results and native test build/date beside completion; never copy proposed results into the record.
 
-Repository script contract established in T04: `npm run check` verifies generated-contract freshness and strict types; `npm run build` bundles implemented entry points; `npm run test:unit` runs deterministic core/probe tests; `npm run test:integration` runs actual helper-process tests. `npm run generate:contracts` updates schema-derived types and `npm run check:contracts` checks drift. Reserved future names are `test:extension` in T08 and `package:alpha` in T24, when those implementations exist; no empty scripts are created. `npm run package:probe` packages only the discovery extension. The unit runner does not forward arbitrary test-path arguments. Helper verification uses `go test ./...` from `helper/` once T05 creates its module. Real Cursor smoke runs remain separate from automated tests; T04 required no additional native agent use. See [event contract](docs/event-contract.md).
+Repository script contract established in T04: `npm run check` verifies generated-contract freshness and strict types; `npm run build` bundles implemented TypeScript entry points; `npm run test:unit` runs deterministic core/probe/transport tests; `npm run test:integration` builds and runs actual Node/Go helper-process tests. `npm run generate:contracts` updates schema-derived types and `npm run check:contracts` checks drift. `npm run test:extension` runs the actual installed Cursor extension host with isolated synthetic fixtures; `npm run supervision:launch` launches the T08 native fixture. `package:alpha` remains reserved for T24; no empty scripts are created. `npm run package:probe` packages only the discovery extension. The unit runner does not forward arbitrary test-path arguments. `npm run build:helper` and `npm run test:helper` select the local toolchain or Go on PATH; direct helper verification uses `go test ./...` from `helper/`. Real Cursor smoke runs remain separate from automated tests; T04–T07 required no additional native agent use. See [event contract](docs/event-contract.md).
 
 ## Phase A — prove the native integration
 
@@ -113,13 +113,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Invented contents, prompts, commands, tool results, user email, and reasoning never appear in projected events or logs.
-- [ ] Every configured hook emits exactly one valid response on stdout, including malformed/oversized input and internal telemetry errors.
-- [ ] Bounded inputs and unknown fields produce safe metadata/gap counters without unbounded memory or accidental action denial.
+- [x] Invented contents, prompts, commands, tool results, user email, and reasoning never appear in projected events or logs.
+- [x] Every configured hook emits exactly one valid response on stdout, including malformed/oversized input and internal telemetry errors.
+- [x] Bounded inputs and unknown fields produce safe metadata/gap counters without unbounded memory or accidental action denial.
 
 **Verification:** `go test ./...`; child-process tests assert exact response JSON, exit behavior, stderr scrubbing, and absence of fake secret markers.
 
 **Files likely touched:** `helper/go.mod`, `helper/cmd/cursor-supervision-hook/main.go`, `helper/internal/input/project.go`, `helper/internal/output/respond.go`, corresponding helper tests.
+
+**Completion record — T05 completed on 22 October 2026:** Implemented the standard-library Go helper, 32 MiB input / 16 KiB projection bounds, depth/key/field limits, duplicate-key rejection, hashed identities/path hints, UUID v4 event identity, safe coverage counters and event-specific responses before telemetry. Input/consumer work has a 1,500 ms process budget; consumer errors/panics cannot alter the response. Source outcomes remain separate from parse gaps. Contract tooling now generates matching Go shapes and checks both languages for drift. Split into input/response and shared-contract/tooling slices with focused tests; see `docs/helper-pipeline.md` for the high-rigor review and resolved findings. Go 1.27.3 darwin/arm64 was downloaded into ignored local storage and checksum-verified. Helper build, `go test ./...`, race checks, `go vet`, a 10-second fuzz run (468,699 executions), existing strict TS checks, 23 unit tests, build and 5 probe integration tests passed. All 14 response kinds have compiled child-process coverage, including malformed/oversized input and unreadable stdin; consumer failure injection is in-process. Probe package inspection excludes the new sources/binary and local tool metadata. The CLI currently discards safe telemetry through an unconnected consumer seam: publication/transport is T06, normalized operation interpretation T07, visible/canonical paths T10. No new native delivery claim or hook configuration change; T06 was not started.
 
 ### T06 — Publish and ingest metadata through the local spool
 
@@ -129,13 +131,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Concurrent helper processes publish complete independent files, and the ingester rejects partial/oversized/non-regular or unsupported files.
-- [ ] Retrying a published event reuses its ID, and duplicate delivery affects projections once.
-- [ ] Spool permission/full/absent-consumer failures remain bounded and do not change the helper’s observational response.
+- [x] Concurrent helper processes publish complete independent files, and the ingester rejects partial/oversized/non-regular or unsupported files.
+- [x] Retrying a published event reuses its ID, and duplicate delivery affects projections once.
+- [x] Spool permission/full/absent-consumer failures remain bounded and do not change the helper’s observational response.
 
 **Verification:** Helper tests plus transport integration tests with concurrent publishers, forced process exit, lost watcher notifications, symlink substitution attempts, and malformed filenames.
 
 **Files likely touched:** `helper/internal/spool/publish.go`, `src/transport/spoolIngester.ts`, `src/transport/journal.ts`, transport tests.
+
+**Completion record — T06 completed on 22 October 2026:** Implemented descriptor-confined Go publication with immutable retry identity, private configuration/root-scope validation and atomic no-replace ready names. Added strict source-envelope schema/types, collector ownership, bounded rescan/polling, synced segmented source journal, conditional acknowledgment, deduplication and conservative recovery. Helper and extension halves were separate focused implementation slices. Manual review fixed recovered-unsynced-line acknowledgment, segment-hole detection and publisher replacement/decoder bounds; see `docs/local-transport.md`. Go tests/race checks, TypeScript checks/build, 29 unit tests and 9 real-process integration tests passed, including 32 concurrent helpers and collector SIGKILL after sync before acknowledgment. Full spool drops new telemetry; full journal stops accepting rather than evicting unacknowledged data. Retention, automatic lease takeover and native UI wiring remain later tasks. No native hook configuration changed. T07 mapping/reducer follows under Angad's explicit continuation request.
 
 ### T07 — Map native read/edit events into a file projection
 
@@ -145,13 +149,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] T02 fixtures map deterministically to normalized facts with the correct evidence dimensions.
-- [ ] A pre-read alone never becomes completed; an edit report alone never becomes saved/accepted.
-- [ ] Generic and specialized observations are joined only by a proven identity, with repeated legitimate actions retained.
+- [x] T02 fixtures map deterministically to normalized facts with the correct evidence dimensions.
+- [x] A pre-read alone never becomes completed; an edit report alone never becomes saved/accepted.
+- [x] Generic and specialized observations are joined only by a proven identity, with repeated legitimate actions retained.
 
 **Verification:** Focused adapter/reducer tests covering success, denied, missing call ID, repeated reads, completion-before-start, and unknown output grammars.
 
 **Files likely touched:** `src/adapters/cursorHooks.ts`, `src/core/reducers.ts`, adapter tests, reducer tests.
+
+**Completion record — T07 completed on 22 October 2026:** Implemented validated Cursor-to-event-v1 normalization and a bounded replayable file-evidence store. Generic/specialized read evidence joins only by complete namespace/call/kind; same-kind reuse, conflicting targets and repeated terminal evidence stay ambiguous. Read attempts, source-reported completion and unpaired edit reports remain separate, with unknown persistence/acceptance and no inferred child file ownership. Added hashed nested path hints with conflict handling and an immutable source-envelope receipt timestamp for diagnostic replay. Detail eviction retains deduplication and call-ambiguity tombstones; review also fixed queued-rescan shutdown ordering. Strict types/contracts/build, 41 unit tests, 10 real-process integration tests and Go tests/race/vet passed. Captured T02/T03 fixtures and an actual compiled-helper → spool → journal → reducer → restart/replay test cover evidence/privacy/idempotence. See `docs/cursor-file-projection.md` for review and boundaries. Source-hint targets remain unresolved until T10; T08/native UI was not started. No real-project hook changes or new native-delivery claim.
 
 ### T08 — Show one native read/edit journey inside Cursor
 
@@ -161,19 +167,23 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] A normal native conversation’s fixture read/edit appears in the same Cursor window with identity, relative path, evidence, and age.
-- [ ] Selecting the entry opens the intended current file or gives an accurate missing-file result.
-- [ ] Enable/disable starts and removes only the extension’s integration; collection requires workspace trust.
+- [x] A normal native conversation’s fixture read/edit appears in the same Cursor window with identity, relative path, evidence, and age.
+- [x] Selecting the entry opens the intended current file or gives an accurate missing-file result.
+- [x] Enable/disable starts and removes only the extension’s integration; collection requires workspace trust.
 
 **Verification:** Build and extension-host tests, followed by a named native Cursor smoke run. Record actual hook-to-visible latency without claiming the final performance target yet.
 
 **Files likely touched:** `src/extension.ts`, `src/integration/pluginManager.ts`, `src/ui/files.ts`, `src/commands.ts`, `package.json`.
 
+**Completion record — T08 completed on 22 October 2026:** Connected owned project hooks, Go helper, durable ingester and a native TreeDataProvider. Fixture-only path mapping safely opens known current files or reports missing/unsafe targets; general identity remains T10. Enable requires trust, refuses existing hooks/competing ownership, and disable stops publishers before exact-owned config cleanup. Implementation was split into integration/UI and host/native verification slices. Strict contracts/types/build, 48 unit tests, 10 process integration tests and seven actual Cursor extension-host checks passed. The named ordinary native Agent Chat read/edit run on Cursor 3.26.16/API 1.128.0/Node 24.19.0 produced 13 journal records and five visible operations across two files. Selection opened the intended current file. Six receipt-to-TreeItem-request samples ranged 110–217 ms; first screen observations bounded read visibility below 17 seconds and edit-report visibility below 14 seconds including automation delay, not pixel-paint latency or performance percentiles. Disable/reload removed owned hooks/lease, left publisher disabled, and a successful native read left the journal unchanged at 13. See [T08 verification](docs/t08-vertical-slice.md), [native fixture](tests/fixtures/cursor/t08-journey.json) and [host checks](docs/t08-extension-host-verification.json).
+
 ### Checkpoint G1 — first useful vertical slice
 
-- [ ] Read/edit telemetry is native, visible inside Cursor, and evidence-labelled correctly.
-- [ ] Collection path, stdout contract, and file opening pass without content retention.
-- [ ] Compare actual effort/overhead with the estimate and revise remaining tasks if needed.
+- [x] Read/edit telemetry is native, visible inside Cursor, and evidence-labelled correctly.
+- [x] Collection path, stdout contract, and file opening pass without content retention.
+- [x] Compare actual effort/overhead with the estimate and revise remaining tasks if needed.
+
+**G1 review — passed, 22 October 2026:** The native slice is useful and evidence-labelled, with source-session identity and no content retention in telemetry. The installed-host suite uses synthetic metadata and is explicitly separate from native delivery evidence. Manual review corrected the native container identifier, event forwarding and test-profile storage isolation. The initial 3–5-file estimate was too small for ownership/trust boundaries plus two distinct verification layers; work was split as above. The native pair completed in about five seconds and the disabled read in about two seconds; neither measures hook overhead. No CPU, memory, p95 paint-latency or comparative overhead result is claimed. Keep T09/T10 focused on identity and paths, retain T13 for the full view and T20/T21 for lifecycle recovery; do not expand the fixture bridge into a general path policy. T08 is complete; T09 is next and has not been started.
 
 ## Phase C — trustworthy identity, lifecycle, and coverage
 

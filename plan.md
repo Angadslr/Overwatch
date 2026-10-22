@@ -2,7 +2,7 @@
 
 Prepared for Angad · 20 October 2026 · Version 1.0 · Proposed implementation, not a shipped extension.
 
-Execution update · 21 October 2026: T01–T03 and G0 are complete for the reduced local observation profile on Cursor 3.26.16/macOS arm64; historical T01 read/edit evidence also covers 3.25.9. Explicit project hooks are selected because the plugin API is unavailable. Child-to-tool joins and session-end delivery remain unavailable; saved bytes and Keep/Undo are separate evidence. See [qualification](docs/phase-a-qualification.md), [decision](docs/decisions/native-integration.md), and [todo.md](todo.md). T04 subsequently completed the schema, generated TypeScript contract and validation boundary. Production helper, collector and UI remain proposed; T05 has not started.
+Execution update · 22 October 2026: T01–T08, G0 and G1 are complete for the reduced local observation profile on Cursor 3.26.16/macOS arm64; historical T01 read/edit evidence also covers 3.25.9. Explicit project hooks are selected because the plugin API is unavailable. Child-to-tool joins and session-end delivery remain unavailable; saved bytes and Keep/Undo are separate evidence. See [qualification](docs/phase-a-qualification.md), [decision](docs/decisions/native-integration.md), and [todo.md](todo.md). The Go privacy pipeline, [T06 durable local transport](docs/local-transport.md), and [T07 file-evidence projection](docs/cursor-file-projection.md) are implemented. The [T08 native fixture tree](docs/t08-vertical-slice.md) is implemented and qualified in development mode. A six-name fixture bridge supports current-file opening; general physical/visible path handling remains T10. T09 stable conversation aliases are next.
 
 ## 1. Outcome and scope
 
@@ -207,7 +207,7 @@ Treat malformed telemetry input as a collection problem, not grounds to deny a n
 
 ## 8. Proposed normalized event contract
 
-T04 implements a versioned JSON Schema, generated TypeScript shape types and a strict validation/projection boundary; see [event contract](docs/event-contract.md). T05 will add the matching Go representation when its helper module exists. The following names are internal product fields, not a promised copy of Cursor payloads.
+T04 implements a versioned JSON Schema, generated TypeScript shape types and a strict validation/projection boundary; see [event contract](docs/event-contract.md). T05 adds matching generated Go shape types. T06 validates/journals a separate source envelope; T07 derives normalized facts with the durable source sequence. The following names are internal product fields, not a promised copy of Cursor payloads.
 
 | Field | Type and rule |
 |---|---|
@@ -346,7 +346,7 @@ A self-check can prove helper execution, spool access, and ingestion, but cannot
 
 Read hook input from stdin with a bounded decoder. Discard content-bearing fields while projecting only allowlisted metadata. Proposed raw input cap is 32 MiB and projected event cap is 16 KiB. When input exceeds the cap, emit the event-specific observation response and a small content-free coverage diagnostic if possible. Do not persist truncated raw payloads.
 
-Publish each event as a uniquely named temporary file in an extension-owned inbox, close it, then atomically rename it to a ready file on the same filesystem. Restrict directory permissions on supported platforms. Retry publication with the same event ID within the invocation budget. Use no shared append file across concurrent helpers.
+T06 publishes each event through a unique temporary file in an extension-owned inbox, syncs/closes it, atomically hard-links a no-replace ready name on the same filesystem, removes the temporary name and syncs the directory. This refines the proposed rename step to prevent overwriting an existing event. Restrict directory permissions on supported platforms. Retry publication with the same event ID within the invocation budget. Use no shared append file across concurrent helpers.
 
 The spool path and publisher identity are extension-generated. Inputs cannot choose destinations. Validate the destination’s ownership and reject symlink substitution to an unrelated location. The threat model is accidental corruption and untrusted payloads; a local process running as the same user is not a cryptographically isolated adversary.
 
@@ -366,7 +366,7 @@ Torn final lines are recoverable: keep the valid prefix, disclose recovery, and 
 
 | Resource | Proposed default | Behavior at bound |
 |---|---:|---|
-| Ready spool | 25 MiB or 10,000 files | Bounded eviction of oldest telemetry, gap counter, no agent blocking |
+| Ready spool | 25 MiB or 10,000 files | T06 drops new telemetry at the approximate cap; preserves unacknowledged evidence, no agent blocking |
 | Journal segment | 5 MiB | Rotate |
 | Retained history | 7 days or 100 MiB, whichever first | Prune complete oldest segments, adjust projections and dedup index |
 | In-memory recent events | 5,000 | Evict oldest UI details; persisted query remains available |

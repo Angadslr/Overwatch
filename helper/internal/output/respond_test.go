@@ -23,6 +23,22 @@ func TestEveryResponse(t *testing.T) {
 	}
 }
 
+func TestKnownHooksCannotBeMutatedByCaller(t *testing.T) {
+	hooks := Hooks()
+	if len(hooks) != 14 {
+		t.Fatal("response profile changed without updating qualification")
+	}
+	for _, hook := range hooks {
+		if !Known(hook) {
+			t.Fatalf("missing handler: %s", hook)
+		}
+	}
+	hooks[0] = "invented"
+	if Known("invented") || Known("") || !Known("sessionStart") {
+		t.Fatal("mutable or overly broad hook allowlist")
+	}
+}
+
 type shortWriter struct{ calls int }
 
 func (w *shortWriter) Write(p []byte) (int, error) { w.calls++; return len(p) - 1, nil }

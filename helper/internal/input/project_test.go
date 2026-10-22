@@ -131,6 +131,56 @@ func TestFieldBoundsAndUnknownValues(t *testing.T) {
 	}
 }
 
+func TestMalformedUnicodeCannotAliasSourceIdentities(t *testing.T) {
+	for _, value := range []string{`"\ud800"`, `"\ud801"`, `"\udc00"`, `"\ufffd"`} {
+		got := Project(strings.NewReader(`{"hook_event_name":"preToolUse","conversation_id":`+value+`}`), "preToolUse")
+		if got.Metadata == nil || got.Metadata.ConversationID != "" || got.Counters.InvalidFields != 1 {
+			t.Fatal("lossy Unicode became an identity")
+		}
+	}
+	got := Project(strings.NewReader(`{"hook_event_name":"preToolUse","conversation_id":"\ud83d\ude00"}`), "preToolUse")
+	if got.Metadata == nil || got.Metadata.ConversationID == "" {
+		t.Fatal("valid surrogate pair rejected")
+	}
+}
+
+func TestNestedPathHintsAndConflictingAliases(t *testing.T) {
+	for _, args := range []string{`{"file_path":"/fixture/read.txt"}`, `{"path":"/fixture/read.txt"}`, `{"target_file":"/fixture/read.txt"}`} {
+		input := `{"hook_event_name":"preToolUse","file_path":"/fixture/read.txt","tool_input":` + args + `}`
+		got := Project(strings.NewReader(input), "preToolUse")
+		if got.Metadata == nil || len(got.Metadata.PathHash) != 64 {
+			t.Fatal("matching path hint omitted")
+		}
+	}
+	got := Project(strings.NewReader(`{"hook_event_name":"preToolUse","file_path":"/fixture/read.txt","tool_input":{"path":"/fixture/other.txt"}}`), "preToolUse")
+	if got.Metadata == nil || got.Metadata.PathHash != "" || got.Counters.InvalidFields != 1 {
+		t.Fatal("conflicting aliases were assigned precedence")
+	}
+	b, _ := json.Marshal(got)
+	if bytes.Contains(b, []byte("/fixture")) {
+		t.Fatal("raw path leaked")
+	}
+}
+
+func TestQualifiedReadEditToolVariants(t *testing.T) {
+	for category, variants := range map[string][]string{
+		"read": {"Read", "ReadFile", "read_file", "read_file_v2"},
+		"edit": {"Write", "Edit", "EditFile", "write_file", "edit_file", "StrReplace", "str_replace"},
+	} {
+		for _, name := range variants {
+			b, _ := json.Marshal(map[string]any{"hook_event_name": "preToolUse", "tool_name": name, "tool_input": map[string]any{"file_path": "/fixture/read.txt", "contents": "FAKE_SECRET_MARKER"}})
+			got := Project(bytes.NewReader(b), "preToolUse")
+			if got.Metadata == nil || got.Metadata.Tool != category || got.Metadata.PathHash == "" {
+				t.Fatalf("variant %s was not projected", name)
+			}
+			encoded, _ := json.Marshal(got)
+			if bytes.Contains(encoded, []byte("FAKE_SECRET_MARKER")) || bytes.Contains(encoded, []byte("/fixture")) {
+				t.Fatal("variant projection leaked content")
+			}
+		}
+	}
+}
+
 type countingReader struct{ remaining, read int }
 
 func (r *countingReader) Read(p []byte) (int, error) {

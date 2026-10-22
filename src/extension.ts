@@ -4,12 +4,14 @@ import { join } from 'node:path';
 import { getPluginApi, probeEligibility } from './host/capabilities';
 import { isFixture, NativeProbe, ProjectHookProbe } from './integration/probe';
 import { createTimingRecorder } from './integration/probeTiming';
+import { registerSupervision, type SupervisionApi } from './commands';
 
 declare const __PROBE_NODE__: string;
 let activeProbe: NativeProbe | undefined;
 let projectProbe: ProjectHookProbe | undefined;
+let supervision: SupervisionApi | undefined;
 
-export async function activate(context: vscode.ExtensionContext): Promise<void> {
+export async function activate(context: vscode.ExtensionContext): Promise<SupervisionApi> {
   const output = vscode.window.createOutputChannel('Overwatch Native Probe');
   context.subscriptions.push(output);
   const roots = vscode.workspace.workspaceFolders ?? [];
@@ -115,10 +117,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     { dispose: () => { activeProbe?.disable(); } },
   );
   await saveReport();
+  supervision = await registerSupervision(context, root, fixture);
   if (process.env.OVERWATCH_PROBE_AUTOSTART === '1') await enable();
+  return supervision;
 }
 
 export async function deactivate(): Promise<void> {
+  await supervision?.disable(); supervision = undefined;
   activeProbe?.disable(); activeProbe = undefined;
   await projectProbe?.disable(); projectProbe = undefined;
 }

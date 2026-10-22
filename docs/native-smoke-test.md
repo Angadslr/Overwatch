@@ -47,3 +47,7 @@ The denial gate was separate from the always-observational probe and was removed
 Hook receipt times are not source start/finish times or UI latency measurements. Observing saved fixture bytes does not establish universal save timing. T02/T03 now compare Keep/Undo and dirty-buffer timing, denial/abort, concurrency, children, worktrees and duplicate windows. Missing child-to-tool joins and absent session-end delivery are recorded limits. Restricted-mode native testing and production helper failure containment remain later release work.
 
 No extension mocks, CLI-agent runs, private database inspection, or invented native fixtures count as native delivery evidence.
+
+## T08 native vertical-slice run — 22 October 2026
+
+The ordinary native Agent Chat read/edit run in the same Cursor development window as the Agent Supervision tree passed. Relative fixture paths, source-session identity, evidence and age were visible; selecting `read.txt` opened the intended current file. Thirteen metadata records projected into five file operations. Disable/reload removed the owned integration, and a subsequent native read completed with the journal unchanged at 13. Exact timings, verification boundaries and cleanup are recorded in [T08 verification](t08-vertical-slice.md) and [the sanitized native fixture](../tests/fixtures/cursor/t08-journey.json). The separate extension-host checks inject synthetic metadata and do not establish native delivery.

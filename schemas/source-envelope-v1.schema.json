@@ -1,0 +1,240 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SourceEnvelopeV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "transportVersion",
+    "eventId",
+    "collectorId",
+    "environmentId",
+    "workspaceId",
+    "result",
+    "receivedAt"
+  ],
+  "properties": {
+    "transportVersion": {
+      "const": 1
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "collectorId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "environmentId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "workspaceId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "worktreeId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "counters"
+      ],
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "metadataVersion",
+            "eventId",
+            "sourceEvent",
+            "receivedAt",
+            "tool",
+            "workspaceRootHashes"
+          ],
+          "properties": {
+            "metadataVersion": {
+              "const": 1
+            },
+            "eventId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+            },
+            "sourceEvent": {
+              "type": "string",
+              "enum": [
+                "sessionStart",
+                "preToolUse",
+                "postToolUse",
+                "postToolUseFailure",
+                "beforeReadFile",
+                "afterFileEdit",
+                "beforeShellExecution",
+                "afterShellExecution",
+                "beforeMCPExecution",
+                "afterMCPExecution",
+                "subagentStart",
+                "subagentStop",
+                "stop",
+                "sessionEnd"
+              ]
+            },
+            "receivedAt": {
+              "type": "string",
+              "format": "overwatch-utc"
+            },
+            "sourceVersion": {
+              "type": "string",
+              "pattern": "^[0-9]{1,8}\\.[0-9]{1,8}\\.[0-9]{1,8}$"
+            },
+            "conversationId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "generationId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "sessionId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "callId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "toolCallId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "parentConversationId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "subagentId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "pathHash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "tool": {
+              "type": "string",
+              "enum": [
+                "unknown",
+                "read",
+                "edit",
+                "shell",
+                "mcp",
+                "task",
+                "delete",
+                "search"
+              ]
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "completed",
+                "aborted",
+                "error"
+              ]
+            },
+            "failureType": {
+              "type": "string",
+              "enum": [
+                "timeout",
+                "error",
+                "permission_denied"
+              ]
+            },
+            "interrupted": {
+              "type": "boolean"
+            },
+            "durationMs": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 86400000
+            },
+            "workspaceRootHashes": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "items": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        },
+        "counters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unknownFields",
+            "sensitiveFields",
+            "invalidFields"
+          ],
+          "properties": {
+            "unknownFields": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "sensitiveFields": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "invalidFields": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1024
+            },
+            "gap": {
+              "type": "string",
+              "enum": [
+                "unsupported-hook",
+                "input-read-failed",
+                "input-too-large",
+                "invalid-utf8",
+                "input-too-deep",
+                "invalid-json",
+                "invalid-object",
+                "hook-mismatch",
+                "invalid-tool-input",
+                "identity-unavailable",
+                "projection-too-large",
+                "telemetry-panic",
+                "input-or-consumer-timeout"
+              ]
+            }
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "metadata"
+          ]
+        },
+        {
+          "properties": {
+            "counters": {
+              "required": [
+                "gap"
+              ],
+              "type": "object"
+            }
+          }
+        }
+      ]
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "overwatch-utc"
+    }
+  }
+}

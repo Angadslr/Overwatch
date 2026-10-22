@@ -79,6 +79,33 @@ func TestEveryHookAsRealProcess(t *testing.T) {
 	}
 }
 
+func TestEveryHookWithUnreadableStdin(t *testing.T) {
+	for _, hook := range output.Hooks() {
+		t.Run(hook, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			directory, err := os.Open(t.TempDir())
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer directory.Close()
+			cmd := exec.CommandContext(ctx, helperBinary, hook)
+			cmd.Stdin = directory
+			var stdout, stderr, want bytes.Buffer
+			cmd.Stdout, cmd.Stderr = &stdout, &stderr
+			if err := output.Respond(&want, hook); err != nil {
+				t.Fatal(err)
+			}
+			if err := cmd.Run(); err != nil {
+				t.Fatal(err)
+			}
+			if stdout.String() != want.String() || stderr.Len() != 0 {
+				t.Fatal("I/O failure changed hook protocol")
+			}
+		})
+	}
+}
+
 func TestResponsePrecedesInputAndProcessBudget(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

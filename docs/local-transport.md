@@ -1,0 +1,37 @@
+# T06 — local metadata spool and journal
+
+Implemented and reviewed for Angad on 22 October 2026. The producer remains a short-lived Go process, with no network or listener. T08 now connects the native fixture tree and owned hook lifecycle; general installation/recovery remains later work. See [T08 verification](t08-vertical-slice.md).
+
+## Contract and use
+
+`schemas/source-envelope-v1.schema.json` describes the source transport envelope, separate from normalized event-v1. `npm run generate:contracts` produces its TypeScript shape, and `check:contracts` checks drift. Strict validation rejects extras, invalid UTF-8, oversized records and inconsistent event IDs. T07 also requires immutable envelope receipt time, matching metadata receipt time when present, for deterministic diagnostic replay. Payload values cannot select destinations or namespaces.
+
+Create an existing private canonical storage directory (0700, current user), call `initializeSpool(storage, scope, canonicalWorkspaceRoot)`, then `SpoolIngester.open(storage, config)`. The helper invocation is `cursor-supervision-hook HOOK STORAGE`. A one-argument response-only invocation remains supported. Production launcher selection must remain trusted. No hook is installed by these APIs.
+
+`publisher.json` is private, extension-generated configuration with collector/environment/workspace/worktree namespaces, an enabled flag, and a hash of the approved canonical workspace root. T05 now projects at most 16 hashed workspace roots. Publisher and ingester require a matching root, qualified Cursor version 3.26.16, and a supported hook. Session-end metadata is not accepted; its response-only compatibility remains. Malformed-input diagnostics have no source actor or outcome.
+
+## Publication and capacity
+
+Go uses `os.Root` descriptors to confine operations, validates canonical private owned directories/configuration and rejects symlinks. Publication creates a private unique temporary file, writes/syncs/closes it, atomically hard-links it to a ready UUID filename without replacement, removes the temporary name and syncs the directory. Hard linking rather than portable rename prevents overwriting a conflicting ready event. Both names are on one filesystem. A killed publisher can leave a temporary name or a second link; the collector never ingests temporary names.
+
+The envelope is built/encoded once before two bounded attempts. Retries preserve event identity and bytes; an already-published identical record succeeds after directory sync, while a conflicting identity cannot overwrite it. The helper's existing response-first, 1,500 ms process budget contains publication failure. No OS error strings or paths are logged.
+
+Ready data is capped approximately at 10,000 entries / 25 MiB with bounded enumeration. Concurrent producers may temporarily exceed the cap. Full storage drops new telemetry rather than evicting unacknowledged observations; this is a deliberate refinement of the proposed eviction policy. An absent consumer accumulates only bounded telemetry. The journal has a 100 MiB / 100,000-record hard limit and 5 MiB segments. It stops accepting when full; age-based pruning/compaction is later retention work. Failed writes poison the current journal writer until reopened and recovered.
+
+## Ownership, ingestion and recovery
+
+One exclusive private `collector.lock` controls a storage root. Its random token and process ID are checked before journal writes and acknowledgments. Another live collector cannot acquire or recover it. Normal close prevents new/queued rescans, waits for the current scan and removes only the exact owned lease; concurrent close calls share that operation. After process death, an explicit caller may supply the prior token to `open`; recovery requires the recorded process to be absent. PID reuse, malformed/replaced leases and uncertain ownership fail closed. Automatic takeover/heartbeat and editor-window routing remain later work.
+
+`scan()` serializes overlapping calls and examines at most 256 directory entries / approximately 2 MiB of ready bytes per batch. A retained directory cursor ensures progress past earlier entries. `start()` adds watcher wakeups and periodic rescans (250 ms default); correctness does not depend on notifications. `start(50, false)` exercises polling alone. Invalid/unsupported ready files are deleted without logging contents; directories and unrecognized unsafe filenames are left untouched. Old regular temporary files may be removed after 60 seconds. All storage is extension-owned.
+
+Files are opened nonblocking with `O_NOFOLLOW`, checked as private owned regular files, and compared by inode/size/timestamps around bounded reads. Root/inbox/journal directory identities are checked around operations. Ready files are acknowledged only after a validated journal append and disk sync, and only if their inode and content still match. No raw quarantine copies are retained. As stated in the plan, a process running as the same user is not cryptographically isolated; Node's path APIs cannot provide an adversarial cross-process transaction between every check and unlink.
+
+Journal records carry their own version, monotonic ingestion sequence and validated envelope. Replay validates contiguous segment names, sequence, scope and IDs. A final unterminated suffix may be truncated and sets `recoveredTail`; a malformed complete line, missing segment or damaged middle fails closed. Recovery syncs all validated segments and directory entries before deduplication can acknowledge retries, including complete writes that may not have reached sync before a crash. Event-ID deduplication prevents a committed retry from appending twice. Projection stores must rebuild from `journal.records` on restart and deduplicate event identity; T07 supplies this reducer.
+
+## Review and verification
+
+Manual review covered crash ordering, idempotence, ownership loss, filesystem substitution, limits, schema/source scope, package exclusions and response isolation. Fixed findings included syncing recovered complete lines before acknowledgment, detecting missing/noncontiguous segments, preventing overwrite during publication, and bounding workspace-root decoding by element count even for invalid values.
+
+Actual checks: Go tests and race detector passed; TypeScript contract/type checks and build passed; 29 unit tests and 9 process integration tests passed at T06 completion. New tests exercise 32 concurrent compiled helpers, committed retries, SIGKILL between durable append and acknowledgment, malformed/oversized input, private-permission/full/disabled/absent storage, symlink/nonregular/oversized ready files, polling without watchers, lease substitution, partial final journal recovery and complete corruption. All original discovery response tests still pass. `test:integration` now builds the real Go helper. The Go wrapper uses the ignored local toolchain when present or Go on PATH, with a local build cache.
+
+The probe VSIX excludes transport bundles and production Go sources/binary; local tool metadata remains excluded. No Cursor relaunch, new native delivery claim, real project hook mutation or release occurred.
