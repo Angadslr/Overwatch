@@ -1,0 +1,10 @@
+node_modules/**
+.local/**
+tests/**
+src/**
+scripts/**
+helper/**
+tsconfig.json
+**/*.map
+*.vsix
+docs/probe-package-verification.json

@@ -1,0 +1,32 @@
+{
+  "captureDate": "2026-10-21",
+  "scenario": "Regression: Cursor cached a project hook after config deletion and extension uninstall; creating a native chat emitted sessionStart",
+  "hookFileAbsent": true,
+  "baselineEventCount": 36,
+  "eventCountAfterDisabledSession": 37,
+  "events": [
+    {
+      "probeSchemaVersion": 1,
+      "eventId": "cef22ffa-64b8-4bec-8ac9-43fdcac499bc",
+      "source": "cursor-hook-probe",
+      "receivedAt": "2026-10-21T17:28:29.071Z",
+      "hookEvent": "sessionStart",
+      "declaredEventMatches": true,
+      "sourceVersion": "3.25.9",
+      "conversationKey": "afc98e8889320eee96b4422e41c4145671afea3dc8f5d20bc8d1359d1f77ed81",
+      "sessionKey": "afc98e8889320eee96b4422e41c4145671afea3dc8f5d20bc8d1359d1f77ed81",
+      "toolName": "unknown",
+      "fieldTypes": {
+        "conversation_id": "string",
+        "generation_id": "string",
+        "session_id": "string",
+        "hook_event_name": "string",
+        "cursor_version": "string",
+        "workspace_roots": "array"
+      },
+      "workingDirectoryMatchesRoot": true,
+      "evidence": "native-delivery-requires-manual-action-trace"
+    }
+  ],
+  "resolution": "Version 0.0.2 adds an enabled marker and an explicit disable-and-reload command; qualification follows separately"
+}

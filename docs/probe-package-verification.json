@@ -1,0 +1,31 @@
+{
+  "package": "overwatch-native-probe-0.0.2.vsix",
+  "sha256": "49e1d37986911a82533584d2990c122eb54dc35797aa9a35181b59833ec9719e",
+  "runtimeBundleSha256": {
+    "extension/dist/extension.cjs": "d332cbfc99d51d0c5e7ed08238bc64d2a1646164f9f47c3484160c1722db9afe",
+    "extension/dist/probe-hook.cjs": "cb4ad3c521d6b43c9d555575e75d2f627ba1bca00914c84e9bfa7989ebb5b566"
+  },
+  "regularHostMode": "production",
+  "nativeEventCount": 10,
+  "totalNativeEventCount": 47,
+  "knownRegressionEventCount": 1,
+  "ownedHooksRemoved": true,
+  "collectionMarkerRemoved": true,
+  "eventCountAfterDisabledSessionCreation": 47,
+  "temporaryExtensionUninstalled": true,
+  "packager": "@vscode/vsce 4.0.0",
+  "platform": "darwin-arm64",
+  "purpose": "machine-specific discovery probe, not alpha package",
+  "recordedAt": "2026-10-21T17:35:09.389791+00:00",
+  "sizeBytes": 56731,
+  "fileCount": 14,
+  "nativeTestedPackageSha256": "ae8490c6686b3ad13552ac836809e4800f409049ec176d6de088772d1d0286b6",
+  "runtimeBundlesMatchNativeTestedPackage": true,
+  "finalRepackageDifference": "Documentation updated with the measured cleanup regression and fix; runtime bundles are byte-identical to the installed native-tested package.",
+  "automatedChecks": {
+    "typecheck": "passed",
+    "build": "passed",
+    "unitTestsPassed": 8,
+    "integrationTestsPassed": 5
+  }
+}

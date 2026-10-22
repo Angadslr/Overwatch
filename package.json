@@ -1,0 +1,76 @@
+{
+  "name": "overwatch-native-probe",
+  "displayName": "Overwatch Native Integration Probe",
+  "description": "Local feasibility probe for native Cursor hook delivery. Not the supervision alpha.",
+  "version": "0.0.3",
+  "publisher": "angad-local",
+  "private": true,
+  "engines": {
+    "vscode": "^1.105.0",
+    "node": ">=22"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Reports capabilities only; executable hooks require trust."
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "overwatch.probe.enable",
+        "title": "Overwatch Probe: Enable in Fixture Workspace"
+      },
+      {
+        "command": "overwatch.probe.enableProjectHooks",
+        "title": "Overwatch Probe: Enable Project Hook Fallback in Fixture Workspace"
+      },
+      {
+        "command": "overwatch.probe.disable",
+        "title": "Overwatch Probe: Disable"
+      },
+      {
+        "command": "overwatch.probe.disableAndReload",
+        "title": "Overwatch Probe: Disable and Reload Fixture Window"
+      },
+      {
+        "command": "overwatch.probe.report",
+        "title": "Overwatch Probe: Show Compatibility Report"
+      }
+    ]
+  },
+  "scripts": {
+    "generate:contracts": "node scripts/generate-contracts.mjs",
+    "check:contracts": "node scripts/generate-contracts.mjs --check",
+    "build:helper": "cd helper && go build -trimpath -o ../dist/cursor-supervision-hook ./cmd/cursor-supervision-hook",
+    "test:helper": "cd helper && go test ./...",
+    "check": "npm run check:contracts && tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "test:unit": "node scripts/test-unit.mjs",
+    "test:integration": "npm run build && node --test tests/integration/*.test.mjs",
+    "probe:launch": "npm run build && node scripts/launch-probe.mjs",
+    "probe:environment": "node scripts/environment.mjs",
+    "package:probe": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license --no-rewrite-relative-links --out overwatch-native-probe-0.0.3.vsix"
+  },
+  "devDependencies": {
+    "@types/node": "22.18.10",
+    "@types/vscode": "1.105.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "ajv": "8.20.0"
+  }
+}

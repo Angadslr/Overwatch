@@ -1,0 +1,39 @@
+{
+  "environment": {
+    "recordedAt": "2026-10-21T17:13:36.492Z",
+    "cursorVersion": "3.25.9",
+    "cursorCommit": "5d4df965746c5d09740842fc0f1331ba1c157830",
+    "embeddedVscodeVersion": "1.128.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "macosVersion": "26.5.2",
+    "nodeVersion": "v24.21.0",
+    "goAvailable": false,
+    "minimumTypeDefinitions": "1.105.0",
+    "nativeDelivery": "not-verified"
+  },
+  "extensionHost": {
+    "recordedAt": "2026-10-21T17:20:51.184Z",
+    "extensionVersion": "0.0.1",
+    "editorApiVersion": "1.128.0",
+    "cursorVersion": "3.25.9",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "extensionHostNode": "24.18.1",
+    "trusted": true,
+    "remote": null,
+    "fixture": true,
+    "pluginApiAvailable": false,
+    "registration": "plugin-registration-api-unavailable",
+    "nativeDelivery": "not-verified",
+    "nativeProbeFiles": 26,
+    "projectHookRegistration": "removed",
+    "projectHookCleanup": "removed"
+  },
+  "reviewedNativeActions": {
+    "firstEventCount": 10,
+    "reloadEventCount": 16,
+    "disabledReadEventCount": 10,
+    "projectHooksPresentAfterDisable": false
+  }
+}

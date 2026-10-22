@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "eventId": "17db1d2a-84e3-4fe7-a70b-b51a6520c80d",
+  "collectorId": "collector-fixture",
+  "source": "cursor-hook",
+  "sourceVersion": "3.26.16",
+  "sourceEvent": "preToolUse",
+  "receivedAt": "2026-10-21T22:11:47.536Z",
+  "environmentId": "local-fixture",
+  "workspaceId": "0763ae93d2e53966254c8bf4d555c1ff9f757225aa4d3989c67a5a42db2f4e22",
+  "conversationId": "3affaa6522a74740e7a97abebe58123140db89f7a076a0f0c29f2948e6603955",
+  "generationId": "generation-fixture",
+  "actorScope": "conversation",
+  "operationId": "operation-read-fixture",
+  "sourceCallId": "call-fixture",
+  "operation": "read",
+  "phase": "requested",
+  "outcome": "unknown",
+  "targets": [
+    {
+      "fileKey": "file-fixture",
+      "relativePath": "src/auth/session.ts",
+      "pathScope": "workspace",
+      "pathKind": "file"
+    }
+  ],
+  "evidence": {
+    "activity": "source-reported",
+    "attribution": "conversation",
+    "completion": "not-observed",
+    "diskPersistence": "not-observed",
+    "correlation": "source-call-id",
+    "limitations": [
+      "model-use-not-established",
+      "child-identity-not-established",
+      "acceptance-not-established"
+    ]
+  },
+  "metrics": {
+    "durationMs": 0,
+    "count": 1,
+    "targetsTruncated": 0
+  }
+}

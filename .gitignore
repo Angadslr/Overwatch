@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.local/
+*.vsix
+.DS_Store

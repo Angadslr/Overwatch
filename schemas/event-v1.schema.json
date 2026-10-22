@@ -1,0 +1,1141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:overwatch:event:v1",
+  "title": "EventV1",
+  "description": "Bounded metadata fact; delivery capability depends on the measured source profile. Evidence dimensions are independent.",
+  "x-maxUtf8Bytes": 65536,
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "type": "integer"
+    },
+    "eventId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "collectorId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "cursor-hook",
+        "filesystem",
+        "editor-buffer",
+        "self-check"
+      ]
+    },
+    "sourceVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:+-]*$"
+    },
+    "sourceEvent": {
+      "type": "string",
+      "enum": [
+        "sessionStart",
+        "sessionEnd",
+        "preToolUse",
+        "postToolUse",
+        "postToolUseFailure",
+        "beforeReadFile",
+        "afterFileEdit",
+        "beforeShellExecution",
+        "afterShellExecution",
+        "beforeMCPExecution",
+        "afterMCPExecution",
+        "subagentStart",
+        "subagentStop",
+        "stop",
+        "fileChanged",
+        "bufferChanged",
+        "bufferSaved",
+        "selfCheck",
+        "transportGap",
+        "unknown"
+      ]
+    },
+    "receivedAt": {
+      "$ref": "#/definitions/UtcTimestamp"
+    },
+    "sourceOccurredAt": {
+      "$ref": "#/definitions/UtcTimestamp"
+    },
+    "ingestSequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "environmentId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "workspaceId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "worktreeId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "conversationId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "generationId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "actorId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "actorScope": {
+      "type": "string",
+      "enum": [
+        "conversation",
+        "child",
+        "unknown"
+      ]
+    },
+    "parentActorId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "operationId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "sourceCallId": {
+      "$ref": "#/definitions/OpaqueId"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "read",
+        "edit",
+        "create",
+        "delete",
+        "rename",
+        "search",
+        "shell",
+        "mcp",
+        "lifecycle",
+        "unknown"
+      ]
+    },
+    "lifecycleScope": {
+      "type": "string",
+      "enum": [
+        "conversation",
+        "generation",
+        "child"
+      ]
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "started",
+        "completed",
+        "failed",
+        "cancelled",
+        "observed"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "success",
+        "error",
+        "denied",
+        "aborted",
+        "unknown"
+      ]
+    },
+    "targets": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/definitions/EventTarget"
+      }
+    },
+    "evidence": {
+      "$ref": "#/definitions/Evidence"
+    },
+    "metrics": {
+      "$ref": "#/definitions/Metrics"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "eventId",
+    "collectorId",
+    "source",
+    "sourceEvent",
+    "receivedAt",
+    "environmentId",
+    "workspaceId",
+    "actorScope",
+    "operationId",
+    "operation",
+    "phase",
+    "outcome",
+    "targets",
+    "evidence"
+  ],
+  "definitions": {
+    "OpaqueId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "RelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*/$)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^\\u0000-\\u001f\\u007f]+$"
+    },
+    "UtcTimestamp": {
+      "type": "string",
+      "format": "overwatch-utc",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "TargetPath": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fileKey": {
+          "$ref": "#/definitions/OpaqueId"
+        },
+        "relativePath": {
+          "$ref": "#/definitions/RelativePath"
+        },
+        "pathScope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "external-redacted",
+            "unresolved"
+          ]
+        },
+        "pathKind": {
+          "type": "string",
+          "enum": [
+            "file",
+            "directory",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "pathScope",
+        "pathKind"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "pathScope": {
+                "const": "workspace"
+              }
+            },
+            "required": [
+              "pathScope"
+            ]
+          },
+          "then": {
+            "required": [
+              "fileKey",
+              "relativePath"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "pathScope": {
+                "const": "external-redacted"
+              }
+            },
+            "required": [
+              "pathScope"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "relativePath"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "EventTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fileKey": {
+          "$ref": "#/definitions/OpaqueId"
+        },
+        "relativePath": {
+          "$ref": "#/definitions/RelativePath"
+        },
+        "pathScope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "external-redacted",
+            "unresolved"
+          ]
+        },
+        "pathKind": {
+          "type": "string",
+          "enum": [
+            "file",
+            "directory",
+            "unknown"
+          ]
+        },
+        "renameDestination": {
+          "$ref": "#/definitions/TargetPath"
+        }
+      },
+      "required": [
+        "pathScope",
+        "pathKind"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "pathScope": {
+                "const": "workspace"
+              }
+            },
+            "required": [
+              "pathScope"
+            ]
+          },
+          "then": {
+            "required": [
+              "fileKey",
+              "relativePath"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "pathScope": {
+                "const": "external-redacted"
+              }
+            },
+            "required": [
+              "pathScope"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "relativePath"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "activity": {
+          "type": "string",
+          "enum": [
+            "source-reported",
+            "filesystem-observed",
+            "buffer-observed",
+            "self-check"
+          ]
+        },
+        "attribution": {
+          "type": "string",
+          "enum": [
+            "conversation",
+            "child",
+            "unknown"
+          ]
+        },
+        "completion": {
+          "type": "string",
+          "enum": [
+            "not-observed",
+            "source-reported",
+            "unknown"
+          ]
+        },
+        "diskPersistence": {
+          "type": "string",
+          "enum": [
+            "not-observed",
+            "observed",
+            "unknown"
+          ]
+        },
+        "correlation": {
+          "type": "string",
+          "enum": [
+            "source-call-id",
+            "unpaired",
+            "ambiguous"
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "model-use-not-established",
+              "child-identity-not-established",
+              "persistence-not-established",
+              "acceptance-not-established",
+              "missing-start",
+              "missing-completion",
+              "generation-not-established",
+              "call-id-reused",
+              "source-session-unlinked",
+              "path-unresolved",
+              "external-target-redacted",
+              "targets-truncated",
+              "source-coverage-partial",
+              "transport-gap",
+              "live-state-unknown-after-reload"
+            ]
+          }
+        }
+      },
+      "required": [
+        "activity",
+        "attribution",
+        "completion",
+        "diskPersistence",
+        "correlation",
+        "limitations"
+      ]
+    },
+    "Metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "durationMs": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 86400000
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "targetsTruncated": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      },
+      "required": []
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "requested"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "unknown"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "completion": {
+                "type": "string",
+                "enum": [
+                  "not-observed",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "started"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "unknown"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "completion": {
+                "type": "string",
+                "enum": [
+                  "not-observed",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "observed"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "unknown"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "completion": {
+                "type": "string",
+                "enum": [
+                  "not-observed",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "success"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "completion": {
+                "const": "source-reported"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "failed"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "error",
+              "denied"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "completion": {
+                "const": "source-reported"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "const": "cancelled"
+          }
+        },
+        "required": [
+          "phase"
+        ]
+      },
+      "then": {
+        "properties": {
+          "outcome": {
+            "const": "aborted"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "completion": {
+                "const": "source-reported"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "actorScope": {
+            "const": "unknown"
+          }
+        },
+        "required": [
+          "actorScope"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "actorId"
+              ]
+            },
+            {
+              "required": [
+                "parentActorId"
+              ]
+            }
+          ]
+        },
+        "properties": {
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "attribution": {
+                "const": "unknown"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "actorScope": {
+            "const": "conversation"
+          }
+        },
+        "required": [
+          "actorScope"
+        ]
+      },
+      "then": {
+        "required": [
+          "conversationId"
+        ],
+        "not": {
+          "required": [
+            "parentActorId"
+          ]
+        },
+        "properties": {
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "attribution": {
+                "const": "conversation"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "actorScope": {
+            "const": "child"
+          }
+        },
+        "required": [
+          "actorScope"
+        ]
+      },
+      "then": {
+        "required": [
+          "conversationId",
+          "actorId",
+          "parentActorId"
+        ],
+        "properties": {
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "attribution": {
+                "const": "child"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "const": "cursor-hook"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceEvent": {
+            "type": "string",
+            "enum": [
+              "sessionStart",
+              "sessionEnd",
+              "preToolUse",
+              "postToolUse",
+              "postToolUseFailure",
+              "beforeReadFile",
+              "afterFileEdit",
+              "beforeShellExecution",
+              "afterShellExecution",
+              "beforeMCPExecution",
+              "afterMCPExecution",
+              "subagentStart",
+              "subagentStop",
+              "stop",
+              "unknown"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "activity": {
+                "const": "source-reported"
+              },
+              "diskPersistence": {
+                "type": "string",
+                "enum": [
+                  "not-observed",
+                  "unknown"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "const": "filesystem"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceEvent": {
+            "type": "string",
+            "enum": [
+              "fileChanged",
+              "unknown"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "activity": {
+                "const": "filesystem-observed"
+              }
+            }
+          },
+          "actorScope": {
+            "const": "unknown"
+          },
+          "phase": {
+            "const": "observed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "const": "editor-buffer"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceEvent": {
+            "type": "string",
+            "enum": [
+              "bufferChanged",
+              "bufferSaved",
+              "unknown"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "activity": {
+                "const": "buffer-observed"
+              }
+            }
+          },
+          "actorScope": {
+            "const": "unknown"
+          },
+          "phase": {
+            "const": "observed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {
+            "const": "self-check"
+          }
+        },
+        "required": [
+          "source"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sourceEvent": {
+            "type": "string",
+            "enum": [
+              "selfCheck",
+              "transportGap",
+              "unknown"
+            ]
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "activity": {
+                "const": "self-check"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "lifecycle"
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "required": [
+          "lifecycleScope"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "not": {
+              "const": "lifecycle"
+            }
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "lifecycleScope"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "not": {
+              "const": "rename"
+            }
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "not": {
+                "required": [
+                  "renameDestination"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceEvent": {
+            "const": "sessionStart"
+          }
+        },
+        "required": [
+          "sourceEvent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": "lifecycle"
+          },
+          "lifecycleScope": {
+            "const": "conversation"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceEvent": {
+            "const": "sessionEnd"
+          }
+        },
+        "required": [
+          "sourceEvent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": "lifecycle"
+          },
+          "lifecycleScope": {
+            "const": "conversation"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceEvent": {
+            "const": "stop"
+          }
+        },
+        "required": [
+          "sourceEvent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": "lifecycle"
+          },
+          "lifecycleScope": {
+            "const": "generation"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceEvent": {
+            "const": "subagentStart"
+          }
+        },
+        "required": [
+          "sourceEvent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": "lifecycle"
+          },
+          "lifecycleScope": {
+            "const": "child"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sourceEvent": {
+            "const": "subagentStop"
+          }
+        },
+        "required": [
+          "sourceEvent"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": "lifecycle"
+          },
+          "lifecycleScope": {
+            "const": "child"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "correlation": {
+                "const": "source-call-id"
+              }
+            },
+            "required": [
+              "correlation"
+            ]
+          }
+        },
+        "required": [
+          "evidence"
+        ]
+      },
+      "then": {
+        "required": [
+          "sourceCallId",
+          "conversationId",
+          "generationId"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "correlation": {
+                "const": "ambiguous"
+              }
+            },
+            "required": [
+              "correlation"
+            ]
+          }
+        },
+        "required": [
+          "evidence"
+        ]
+      },
+      "then": {
+        "required": [
+          "sourceCallId"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "correlation": {
+                "const": "unpaired"
+              }
+            },
+            "required": [
+              "correlation"
+            ]
+          }
+        },
+        "required": [
+          "evidence"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "sourceCallId"
+          ]
+        }
+      }
+    }
+  ]
+}

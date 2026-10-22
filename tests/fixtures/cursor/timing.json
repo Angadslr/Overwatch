@@ -1,0 +1,197 @@
+{
+  "captureDate": "2026-10-21",
+  "scenario": "Native edit, Undo, Keep, manual dirty buffer, auto-save, and post-reload edit timing",
+  "capture": "Native Cursor Agent Chat; allowlisted projection before persistence; SHA-256 source identifiers; invented relative paths only",
+  "integration": "project-hooks",
+  "host": {
+    "cursorVersion": "3.26.16",
+    "cursorCommit": "8fcb8ace5c73fa31f2e2707fd6783160e4ed3e40",
+    "editorApiVersion": "1.128.0",
+    "extensionHostNode": "24.19.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "macosVersion": "26.5.2",
+    "trusted": true,
+    "pluginApiAvailable": false
+  },
+  "events": [],
+  "observations": [
+    {
+      "receivedAt": "2026-10-21T22:11:49.640Z",
+      "kind": "open",
+      "target": "created.txt",
+      "dirty": false,
+      "documentVersion": 1,
+      "bufferHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "diskHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:11:49.668Z",
+      "kind": "open",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 3,
+      "bufferHash": "93c7bbc645f403376a8b1f71cbaf7155316e3014b1f3c3bcdbadc4cf3fcd9a25",
+      "diskHash": "c4aba6e4a96b8f2ff4945c674230fa7b97d6d871f9e6ccb247d0f58e52f96039",
+      "bufferMatchesDisk": false
+    },
+    {
+      "receivedAt": "2026-10-21T22:11:49.673Z",
+      "kind": "change",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 4,
+      "bufferHash": "c4aba6e4a96b8f2ff4945c674230fa7b97d6d871f9e6ccb247d0f58e52f96039",
+      "diskHash": "c4aba6e4a96b8f2ff4945c674230fa7b97d6d871f9e6ccb247d0f58e52f96039",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:12:24.621Z",
+      "kind": "change",
+      "target": "created.txt",
+      "dirty": false,
+      "documentVersion": 2,
+      "bufferHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diskHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "bufferMatchesDisk": false
+    },
+    {
+      "receivedAt": "2026-10-21T22:12:24.622Z",
+      "kind": "change",
+      "target": "created.txt",
+      "dirty": true,
+      "documentVersion": 2,
+      "bufferHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "diskHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "bufferMatchesDisk": false
+    },
+    {
+      "receivedAt": "2026-10-21T22:12:24.629Z",
+      "kind": "change",
+      "target": "created.txt",
+      "dirty": false,
+      "documentVersion": 3,
+      "bufferHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "diskHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:12:24.630Z",
+      "kind": "close",
+      "target": "created.txt",
+      "dirty": false,
+      "documentVersion": 3,
+      "bufferHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "diskHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:12:44.275Z",
+      "kind": "open",
+      "target": "created.txt",
+      "dirty": false,
+      "documentVersion": 3,
+      "bufferHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "diskHash": "10aa155e380f7d9a5429df5d8ab1726bdbb494137546d10c7cd727ba49b094b3",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:12:44.313Z",
+      "kind": "change",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 5,
+      "bufferHash": "4ad81ad75f0b5dc49253dd40507a8feec04c70820c4e64e9185e9f65c451a524",
+      "diskHash": "4ad81ad75f0b5dc49253dd40507a8feec04c70820c4e64e9185e9f65c451a524",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:13:09.698Z",
+      "kind": "change",
+      "target": "edit.txt",
+      "dirty": true,
+      "documentVersion": 5,
+      "bufferHash": "4ad81ad75f0b5dc49253dd40507a8feec04c70820c4e64e9185e9f65c451a524",
+      "diskHash": "4ad81ad75f0b5dc49253dd40507a8feec04c70820c4e64e9185e9f65c451a524",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:13:09.701Z",
+      "kind": "change",
+      "target": "edit.txt",
+      "dirty": true,
+      "documentVersion": 6,
+      "bufferHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "diskHash": "4ad81ad75f0b5dc49253dd40507a8feec04c70820c4e64e9185e9f65c451a524",
+      "bufferMatchesDisk": false
+    },
+    {
+      "receivedAt": "2026-10-21T22:13:10.715Z",
+      "kind": "change",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 6,
+      "bufferHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "diskHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:13:10.715Z",
+      "kind": "change",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 6,
+      "bufferHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "diskHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:13:10.717Z",
+      "kind": "save",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 6,
+      "bufferHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "diskHash": "837279ecd256771c12beaf49d214fd901445df22b72fc744690555595db5bbf6",
+      "bufferMatchesDisk": true
+    },
+    {
+      "receivedAt": "2026-10-21T22:20:48.388Z",
+      "kind": "open",
+      "target": "edit.txt",
+      "dirty": false,
+      "documentVersion": 1,
+      "bufferHash": "8e0e8543d83b7f021951edd97e76c0e7a4c8067f0f885387b7f23c3ae684dfd4",
+      "diskHash": "8e0e8543d83b7f021951edd97e76c0e7a4c8067f0f885387b7f23c3ae684dfd4",
+      "bufferMatchesDisk": true
+    }
+  ],
+  "uiTrace": [
+    {
+      "action": "Native create and coral edit finished with Undo/Keep controls still visible",
+      "evidence": "Disk already coral before Keep; see operation and timing receipt times"
+    },
+    {
+      "action": "Undo then Confirm",
+      "evidence": "created.txt removed; edit.txt remained coral; no matching agent hook; do not generalize group Undo behavior"
+    },
+    {
+      "action": "Native gold edit, Keep in file editor",
+      "evidence": "Disk already gold; Keep did not supply an acceptance hook"
+    },
+    {
+      "action": "Manually replaced edit.txt buffer with invented silver line",
+      "evidence": "dirty buffer differed from disk, then auto-save after approximately 1 second; no agent file hook"
+    },
+    {
+      "action": "Post-reload native copper edit, then Keep",
+      "evidence": "Read/Write delivered after reload; review resolved before cleanup"
+    }
+  ],
+  "limits": [
+    "Receipt order compares local observations; not a source transaction clock",
+    "Synchronous disk reads are best-effort samples, not atomic editor/disk snapshots",
+    "Hashes compare invented bytes only; no accepted/saved actor inference"
+  ]
+}

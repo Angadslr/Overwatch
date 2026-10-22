@@ -1,0 +1,486 @@
+{
+  "host": {
+    "cursorVersion": "3.26.16",
+    "cursorCommit": "8fcb8ace5c73fa31f2e2707fd6783160e4ed3e40",
+    "editorApiVersion": "1.128.0",
+    "extensionHostNode": "24.19.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "macosVersion": "26.5.2",
+    "trusted": true,
+    "pluginApiAvailable": false
+  },
+  "rawPayloadsRetained": false,
+  "profiles": {
+    "preToolUse": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "cwd": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_input": [
+          "object"
+        ],
+        "tool_name": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {
+        "command": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "file_path": [
+          "string"
+        ],
+        "prompt": [
+          "string"
+        ],
+        "subagent_type": [
+          "string"
+        ]
+      }
+    },
+    "beforeReadFile": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "file_path": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "postToolUse": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "cwd": [
+          "string"
+        ],
+        "duration": [
+          "number"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_input": [
+          "object"
+        ],
+        "tool_name": [
+          "string"
+        ],
+        "tool_output": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {
+        "command": [
+          "string"
+        ],
+        "description": [
+          "string"
+        ],
+        "file_path": [
+          "string"
+        ],
+        "prompt": [
+          "string"
+        ],
+        "subagent_type": [
+          "string"
+        ]
+      }
+    },
+    "postToolUseFailure": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "cwd": [
+          "string"
+        ],
+        "duration": [
+          "number"
+        ],
+        "failure_type": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "is_interrupt": [
+          "boolean"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_input": [
+          "object"
+        ],
+        "tool_name": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {
+        "command": [
+          "string"
+        ],
+        "file_path": [
+          "string"
+        ]
+      }
+    },
+    "afterFileEdit": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "file_path": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "stop": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "beforeShellExecution": {
+      "fieldTypes": {
+        "command": [
+          "string"
+        ],
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "cwd": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "afterShellExecution": {
+      "fieldTypes": {
+        "command": [
+          "string"
+        ],
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "duration": [
+          "number"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "sessionStart": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "subagentStart": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "parent_conversation_id": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "subagent_id": [
+          "string"
+        ],
+        "subagent_type": [
+          "string"
+        ],
+        "tool_call_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "subagentStop": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "parent_conversation_id": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "status": [
+          "string"
+        ],
+        "subagent_id": [
+          "string"
+        ],
+        "subagent_type": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "beforeMCPExecution": {
+      "fieldTypes": {
+        "command": [
+          "string"
+        ],
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_input": [
+          "string"
+        ],
+        "tool_name": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    },
+    "afterMCPExecution": {
+      "fieldTypes": {
+        "conversation_id": [
+          "string"
+        ],
+        "cursor_version": [
+          "string"
+        ],
+        "duration": [
+          "number"
+        ],
+        "generation_id": [
+          "string"
+        ],
+        "hook_event_name": [
+          "string"
+        ],
+        "result_json": [
+          "string"
+        ],
+        "session_id": [
+          "string"
+        ],
+        "tool_input": [
+          "string"
+        ],
+        "tool_name": [
+          "string"
+        ],
+        "tool_use_id": [
+          "string"
+        ],
+        "workspace_roots": [
+          "array"
+        ]
+      },
+      "inputFieldTypes": {}
+    }
+  }
+}
