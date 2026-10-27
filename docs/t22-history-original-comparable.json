@@ -1,0 +1,45 @@
+{
+  "recordedAt": "2026-10-26T21:36:39.690Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "records": 97280,
+  "bytes": 104856734,
+  "segments": 21,
+  "openAndFirstProjectionMs": 768.4644999999999,
+  "completeRecentProjectionMs": 5631.336584,
+  "sourceAndProjectionCpuMs": 1623.496,
+  "incrementalRssBytes": 345849856,
+  "incrementalHeapBytes": 199297824,
+  "incrementalExternalBytes": 39527403,
+  "incrementalArrayBufferBytes": 33798651,
+  "settledIncrementalRssBytes": 345849856,
+  "peakObservedRssBytes": 424525824,
+  "projectedEvidence": 5000,
+  "stagedLoadingVisible": true,
+  "statuses": [
+    "Loading retained history \u00b7 checking journal",
+    "Loading retained history \u00b7 200/97280 projected \u00b7 live state unknown",
+    "Loading retained history \u00b7 400/97280 projected \u00b7 live state unknown"
+  ],
+  "history": {
+    "firstSequence": 1,
+    "nextSequence": 97281,
+    "retainedRecords": 97280,
+    "bytes": 104856734,
+    "retiredIdentities": 0,
+    "expiredBefore": "1970-01-01T00:00:00.000Z"
+  },
+  "budgetBytes": 78643200,
+  "memoryBudgetPassed": false,
+  "limitations": [
+    "Synthetic near-cap source journal is generated outside the measured reader process.",
+    "The original reader retains all 97,280 payloads; this sample stops projection after the first 5,000 facts so the comparison uses the same projected fact count.",
+    "RSS/heap are sampled reader-process measurements, not the installed shared extension host.",
+    "An explicit garbage collection precedes the reader baseline; no forced collection is used to reduce measured peaks."
+  ],
+  "historyModel": "all-retained-payloads-baseline",
+  "baselineSource": "Owned .local/t22-manual-extension/dist/extension.cjs bundle from the earlier T22 manual smoke; exported manager only, editor module imports stubbed without activation."
+}

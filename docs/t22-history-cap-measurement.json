@@ -1,0 +1,26 @@
+{
+  "recordedAt": "2026-10-26T06:47:01.536Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "records": 97280,
+  "bytes": 104856734,
+  "segments": 21,
+  "openAndFirstProjectionMs": 897.794292,
+  "sourceAndFirstProjectionCpuMs": 962.798,
+  "incrementalRssBytes": 166100992,
+  "incrementalHeapBytes": 92835096,
+  "peakObservedRssBytes": 393576448,
+  "stagedLoadingVisible": true,
+  "statuses": [
+    "Loading retained history · checking journal",
+    "Loading retained history · 200/97280 projected · live state unknown"
+  ],
+  "limitations": [
+    "Synthetic near-cap source journal; seed creation and file generation precede the memory baseline.",
+    "Open includes strict journal validation and the first 200 projections. Remaining rows are visibly staged; complete UI replay is not timed here.",
+    "RSS/heap are Node process measurements, not the installed shared extension host."
+  ]
+}

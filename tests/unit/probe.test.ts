@@ -33,7 +33,7 @@ test('launcher quoting handles spaces, apostrophes and shell syntax as literal d
 });
 
 test('probe registration is idempotent and unregisters precisely its own path', async () => {
-  const root = await mkdtemp(join(tmpdir(), 'overwatch-unit-'));
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'overwatch-unit-')));
   try {
     const fixture = join(root, 'fixture');
     await mkdir(fixture);

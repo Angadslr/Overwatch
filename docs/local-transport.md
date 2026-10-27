@@ -1,12 +1,14 @@
 # T06 — local metadata spool and journal
 
-Implemented and reviewed for Angad on 22 October 2026. The producer remains a short-lived Go process, with no network or listener. T08 now connects the native fixture tree and owned hook lifecycle; general installation/recovery remains later work. See [T08 verification](t08-vertical-slice.md).
+Implemented and reviewed for Angad on 22 October 2026. The producer remains a short-lived Go process. The extension now owns a private local Unix-socket broker; no TCP listener is used. T08 now connects the native fixture tree and owned hook lifecycle; general installation/recovery remains later work. See [T08 verification](t08-vertical-slice.md).
 
 ## Contract and use
 
 `schemas/source-envelope-v1.schema.json` describes the source transport envelope, separate from normalized event-v1. `npm run generate:contracts` produces its TypeScript shape, and `check:contracts` checks drift. Strict validation rejects extras, invalid UTF-8, oversized records and inconsistent event IDs. T07 also requires immutable envelope receipt time, matching metadata receipt time when present, for deterministic diagnostic replay. Payload values cannot select destinations or namespaces.
 
 Create an existing private canonical storage directory (0700, current user), call `initializeSpool(storage, scope, canonicalWorkspaceRoot)`, then `SpoolIngester.open(storage, config)`. The helper invocation is `cursor-supervision-hook HOOK STORAGE`. A one-argument response-only invocation remains supported. Production launcher selection must remain trusted. No hook is installed by these APIs.
+
+T23 upgrades owned production configurations to `requireCollectorEpoch: true`. Installed launchers invoke `cursor-supervision-hook HOOK STORAGE COLLECTOR_ID`; the final argument must match the current private publisher configuration. Publication and ingestion use `inbox/COLLECTOR_ID/`. Legacy two-argument publishers cannot publish after this upgrade (the explicit diagnostic self-check remains separately supported). Enable drains qualified legacy flat-inbox input before upgrading. Reviewed history reset removes the old inbox directory and rotates the ID so delayed/cached helpers cannot restore cleared records. See [reviewed deletion](privacy.md#reviewed-workspace-history-deletion-t23).
 
 `publisher.json` is private, extension-generated configuration with collector/environment/workspace/worktree namespaces, an enabled flag, and a hash of the approved canonical workspace root. T05 now projects at most 16 hashed workspace roots. Publisher and ingester require a matching root, qualified Cursor version 3.26.16, and a supported hook. Session-end metadata is not accepted; its response-only compatibility remains. Malformed-input diagnostics have no source actor or outcome.
 
@@ -16,7 +18,7 @@ Go uses `os.Root` descriptors to confine operations, validates canonical private
 
 The envelope is built/encoded once before two bounded attempts. Retries preserve event identity and bytes; an already-published identical record succeeds after directory sync, while a conflicting identity cannot overwrite it. The helper's existing response-first, 1,500 ms process budget contains publication failure. No OS error strings or paths are logged.
 
-Ready data is capped approximately at 10,000 entries / 25 MiB with bounded enumeration. Concurrent producers may temporarily exceed the cap. Full storage drops new telemetry rather than evicting unacknowledged observations; this is a deliberate refinement of the proposed eviction policy. An absent consumer accumulates only bounded telemetry. The journal has a 100 MiB / 100,000-record hard limit and 5 MiB segments. It stops accepting when full; age-based pruning/compaction is later retention work. Failed writes poison the current journal writer until reopened and recovered.
+Ready data is capped approximately at 10,000 entries / 25 MiB with bounded enumeration. Concurrent producers may temporarily exceed the cap. Full storage drops new telemetry rather than evicting unacknowledged observations; this is a deliberate refinement of the proposed eviction policy. An absent consumer accumulates only bounded telemetry. The journal has a 100 MiB / 100,000-record hard limit and 5 MiB segments. T19 now prunes complete oldest segments under seven-day/size/count retention, preserving bounded recent UUID/digest tombstones; see [history and recovery](history-and-recovery.md). It stops safely if retention cannot preserve the deduplication bound. Failed writes poison the current journal writer until reopened and recovered.
 
 ## Ownership, ingestion and recovery
 
@@ -35,3 +37,15 @@ Manual review covered crash ordering, idempotence, ownership loss, filesystem su
 Actual checks: Go tests and race detector passed; TypeScript contract/type checks and build passed; 29 unit tests and 9 process integration tests passed at T06 completion. New tests exercise 32 concurrent compiled helpers, committed retries, SIGKILL between durable append and acknowledgment, malformed/oversized input, private-permission/full/disabled/absent storage, symlink/nonregular/oversized ready files, polling without watchers, lease substitution, partial final journal recovery and complete corruption. All original discovery response tests still pass. `test:integration` now builds the real Go helper. The Go wrapper uses the ignored local toolchain when present or Go on PATH, with a local build cache.
 
 The probe VSIX excludes transport bundles and production Go sources/binary; local tool metadata remains excluded. No Cursor relaunch, new native delivery claim, real project hook mutation or release occurred.
+
+
+## T22 bounded replay and batching foundation
+
+The production publisher attempts the private broker before the durable spool. The journal now retains a 5,000-payload memory tail with compact identities for all disk-retained records, plus bounded historical-page reads. Single-record and bounded batch appends share one serialized writer; a batch resolves only after its durable groups are synced. The lease owner creates a canonical private temporary directory, a mode-0600 socket and an ownership proof; only private publisher configuration receives its random bearer token and locator. The Go helper checks that proof and socket identity, then allows 250 ms for an exact event/digest durability acknowledgment before falling back with unchanged event bytes. Empty-queue polling backs off to one second only with an active native watcher; valid ready-link renames wake immediately and notifications during a scan request one follow-up scan. Unavailable watchers retain the configured polling rate. Source Health and [resource measurements](performance.md) continue to disclose open budget failures.
+
+
+## T22 production broker continuation
+
+The broker accepts one authenticated newline-delimited source frame per connection, with strict schema/scope/current privacy checks. It bounds connections and pending records to 256 each, total buffered bytes to 4 MiB, source bytes to 16 KiB, batches to 32 and connection lifetime to one second. An eight-millisecond coalescing timer shares journal syncs. Broker and spool writes use the same serialized writer. The current admission policy is checked again when a journal turn begins, and lease/configuration checks surround flush and acknowledgment.
+
+Disable/privacy reset stops admission, destroys clients, waits for in-flight journal writes and removes only proven endpoint artifacts. Startup recovers a proven stale endpoint under the workspace lease. Unknown entries, substituted inodes and uncertain ownership are preserved. If endpoint startup fails while configuration ownership remains valid, collection continues through the spool. Tokens and endpoint paths must never enter diagnostic exports. See [independent tests](INDEPENDENT-TEST-PLAN.md) for remaining acceptance coverage and unchanged resource gates.

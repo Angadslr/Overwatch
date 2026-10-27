@@ -3,33 +3,42 @@ import { mkdir, open, unlink, lstat, opendir, realpath, rename } from 'node:fs/p
 import { createHash, randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { SecureDirectory, sameFile } from './secureFs';
-import { Journal, type SourceJournalRecord } from './journal';
+import { Journal, type SourceJournalRecord, type JournalOptions } from './journal';
+import { ProjectionCheckpoints } from './checkpoint';
 import { MAX_SOURCE_BYTES, OPAQUE_PATTERN, UUID_PATTERN, parseSource } from './sourceValidation';
 import type { SourceEnvelopeV1 } from './sourceContracts';
+import { fixturePolicy, validPolicy, type PrivacyPolicy } from '../integration/privacyPolicy';
+import {LocalBroker,cleanupBrokerEndpoint,validBrokerEndpoint,type BrokerEndpoint,type BrokerRejection} from './localBroker';
 export interface Scope {
   collectorId: string;
   environmentId: string;
   workspaceId: string;
   worktreeId?: string;
 }
-export interface PublisherConfig extends Scope {
+export interface PublisherConfig extends Scope, Partial<PrivacyPolicy> {
   configVersion: 1;
   sourceRootHash: string;
   enabled: boolean;
+  requireCollectorEpoch?:true;
+  broker?:BrokerEndpoint;
 }
+export interface QueueSample { sampledAt: string; readyFiles: number; oldestObservedAgeMs: number; incomplete: boolean; scannedEntries: number }
+export interface ProducerFailure { category:'publication-failed'|'deadline-exceeded'|'uncertain'; recordedAt?:string }
 interface Lease {
   leaseVersion: 1;
   token: string;
   pid: number;
 }
 /** Creates only private local storage. Source payloads cannot choose this path. */
-export async function initializeSpool(path: string, scope: Scope, sourceWorkspaceRoot: string, initiallyEnabled = true): Promise<PublisherConfig> {
+export async function initializeSpool(path: string, scope: Scope, sourceWorkspaceRoot: string, initiallyEnabled = true, exclusions: readonly string[] = []): Promise<PublisherConfig> {
   for (const value of [scope.collectorId, scope.environmentId, scope.workspaceId, ...(scope.worktreeId === undefined ? [] : [scope.worktreeId])])
     if (typeof value !== 'string' || !OPAQUE_PATTERN.test(value))
       throw new Error('invalid-scope');
   if (await realpath(sourceWorkspaceRoot) !== sourceWorkspaceRoot)
     throw new Error('noncanonical-source-root');
   let config: PublisherConfig = { configVersion: 1, collectorId: scope.collectorId, environmentId: scope.environmentId, workspaceId: scope.workspaceId, ...(scope.worktreeId === undefined ? {} : { worktreeId: scope.worktreeId }), sourceRootHash: createHash('sha256').update('workspace-root\0' + sourceWorkspaceRoot).digest('hex'), enabled: initiallyEnabled };
+  const base = { ...config };
+  Object.assign(config, fixturePolicy(sourceWorkspaceRoot, config.sourceRootHash, exclusions));
   const root = await SecureDirectory.open(path);
   try {
     for (const name of ['inbox', 'journal']) {
@@ -55,10 +64,13 @@ export async function initializeSpool(path: string, scope: Scope, sourceWorkspac
       if ((error as NodeJS.ErrnoException).code !== 'EEXIST')
         throw error;
       const previous = JSON.parse((await root.read('publisher.json', 4096)).bytes.toString('utf8')) as PublisherConfig;
-      if (typeof previous.enabled !== 'boolean' || JSON.stringify(previous) !== JSON.stringify({ ...config, enabled: previous.enabled }))
+      const { privacyVersion, policyId, allowedPathHashes, requireCollectorEpoch, broker, ...previousBase } = previous;
+      if ((broker!==undefined&&(!validBrokerEndpoint(broker)||requireCollectorEpoch!==true)) || (requireCollectorEpoch!==undefined&&requireCollectorEpoch!==true) || typeof previous.enabled !== 'boolean' || JSON.stringify(previousBase) !== JSON.stringify({ ...base, enabled: previous.enabled }) ||
+        (privacyVersion !== undefined && !validPolicy({ privacyVersion, policyId, allowedPathHashes }, config.sourceRootHash)))
         throw new Error('publisher-config-conflict');
       config = previous;
     }
+    if(config.requireCollectorEpoch){await root.guard();await mkdir(join(path,'inbox',config.collectorId),{mode:0o700}).catch(error=>{if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;});const epoch=await SecureDirectory.open(join(path,'inbox',config.collectorId));await epoch.close();}
     return config;
   }
   finally {
@@ -66,26 +78,92 @@ export async function initializeSpool(path: string, scope: Scope, sourceWorkspac
   }
 }
 export class SpoolIngester {
-  readonly counters = { accepted: 0, duplicates: 0, rejected: 0, failures: 0 };
+  readonly counters = { accepted: 0, duplicates: 0, rejected: 0, failures: 0, schemaRejected: 0, scopeRejected: 0, policyRejected: 0, expired: 0 };
   readonly journal: Journal;
+  readonly checkpoints: ProjectionCheckpoints;
+  async inspectProducerFailure():Promise<ProducerFailure|undefined>{
+    await this.assertOwner();try{const read=await (this.config.requireCollectorEpoch?this.inbox:this.root).read('producer-loss.json',512),value=JSON.parse(read.bytes.toString('utf8'));
+      if(read.info.nlink!==1||!value||Object.keys(value).sort().join(',')!=='category,lossVersion,recordedAt'||value.lossVersion!==1||!['publication-failed','deadline-exceeded'].includes(value.category)||typeof value.recordedAt!=='string'||!Number.isFinite(Date.parse(value.recordedAt)))return{category:'uncertain'};
+      return{category:value.category,recordedAt:value.recordedAt};
+    }catch(error){return(error as NodeJS.ErrnoException).code==='ENOENT'?undefined:{category:'uncertain'};}
+  }
+  async inspectQueue(): Promise<QueueSample> {
+    await this.assertOwner();
+    const listing = await opendir(this.inbox.path);
+    const now = Date.now(); let scannedEntries = 0, readyFiles = 0, oldestObservedAgeMs = 0, incomplete = true;
+    try {
+      while (scannedEntries < 256) {
+        const entry = await listing.read(); if (!entry) { incomplete = false; break; } scannedEntries++;
+        if (!/^[0-9a-f-]{36}\.json$/.test(entry.name) || !UUID_PATTERN.test(entry.name.slice(0, -5))) continue;
+        const info = await lstat(join(this.inbox.path, entry.name)).catch(() => undefined);
+        if (!info?.isFile() || info.isSymbolicLink()) continue;
+        readyFiles++; oldestObservedAgeMs = Math.max(oldestObservedAgeMs, Math.max(0, now - info.mtimeMs));
+      }
+      await this.assertOwner();
+      return { sampledAt: new Date(now).toISOString(), readyFiles, oldestObservedAgeMs, incomplete, scannedEntries };
+    } finally { await listing.close(); }
+  }
   private cursor: Dir | undefined;
   private timer: NodeJS.Timeout | undefined;
   private watcher: FSWatcher | undefined;
+  private watchAvailable = false;
+  private nextPollAt = 0;
+  private rescanRequested = false;
   private pending: Promise<SourceJournalRecord[]> | undefined;
   private closed = false;
   private closing = false;
   private closeTask: Promise<void> | undefined;
-  private constructor(private readonly root: SecureDirectory, private readonly inbox: SecureDirectory, private readonly history: SecureDirectory, private readonly config: PublisherConfig, private readonly lease: Lease, private readonly leaseBytes: Buffer) {
-    this.journal = new Journal(history, () => this.assertOwner(), e => this.acceptScope(e));
+  private admissionPolicy: Partial<PrivacyPolicy>;
+  private broker:LocalBroker|undefined;
+  private brokerState:'off'|'active'|'unavailable'='off';
+  brokerStatus():{state:'off'|'active'|'unavailable';connections:number;queued:number;bufferedBytes:number}{return{state:this.brokerState,connections:0,queued:0,bufferedBytes:0,...(this.broker?.snapshot()??{})};}
+  private brokerAdmission(event:SourceEnvelopeV1):BrokerRejection|undefined{
+    if(this.closed||this.closing||!this.config.enabled)return 'closed';
+    if(!this.acceptScope(event))return 'scope';
+    const metadata=event.result.metadata,policy=this.admissionPolicy;
+    if(metadata?.pathHash&&(!validPolicy(policy,this.config.sourceRootHash)||metadata.policyId!==policy.policyId||!policy.allowedPathHashes.includes(metadata.pathHash)))return 'policy';
+    return undefined;
   }
-  static async open(path: string, config: PublisherConfig, recoverLeaseToken?: string): Promise<SpoolIngester> {
+  async startBroker():Promise<boolean>{
+    if(this.scopedReset||this.closed||this.closing||!this.config.requireCollectorEpoch)throw new Error('broker-owner-required');
+    if(this.broker)return true;
+    await this.stopBroker();await this.assertConfiguration();
+    let broker:LocalBroker;
+    try{broker=await LocalBroker.open({guard:()=>this.assertConfiguration(),admit:event=>this.brokerAdmission(event),submit:async events=>{
+      const results=await this.journal.appendBatch(events,event=>this.brokerAdmission(event)===undefined);
+      for(const result of results){if(result.added)this.counters.accepted++;else if(result.expired)this.counters.expired++;else this.counters.duplicates++;}return results;
+    },rejected:reason=>{if(reason==='capacity'||reason==='closed')return;this.counters.rejected++;if(reason==='schema')this.counters.schemaRejected++;else if(reason==='policy')this.counters.policyRejected++;else if(reason==='auth'||reason==='scope')this.counters.scopeRejected++;else this.counters.failures++;}});}
+    catch{await this.assertConfiguration();this.brokerState='unavailable';return false;}
+    this.broker=broker;
+    try{await this.replaceConfig({...this.config,broker:{...broker.endpoint}});this.brokerState='active';return true;}
+    catch(error){this.broker=undefined;await broker.close();throw error;}
+  }
+  private async stopBroker():Promise<void>{
+    const broker=this.broker;this.broker=undefined;
+    if(broker)await broker.close();
+    else if(this.config.broker&&!await cleanupBrokerEndpoint(this.config.broker,()=>this.assertOwner()))throw new Error('broker-cleanup-unproven');
+    if(this.config.broker){const {broker:removed,...next}=this.config;await this.replaceConfig(next);}
+    this.brokerState='off';
+  }
+  private constructor(private readonly root: SecureDirectory, private inbox: SecureDirectory, private readonly history: SecureDirectory, private readonly config: PublisherConfig, private readonly lease: Lease, private readonly leaseBytes: Buffer, options: JournalOptions,private readonly scopedReset=false) {
+    this.admissionPolicy = config;
+    this.checkpoints = new ProjectionCheckpoints(root, () => this.assertOwner());
+    this.journal = new Journal(history, () => this.assertOwner(), e => this.acceptScope(e), { ...options, beforePrune: () => this.checkpoints.invalidate() });
+  }
+  static async open(path: string, config: PublisherConfig, recoverLeaseToken?: string, options: JournalOptions = {}): Promise<SpoolIngester> {
+    return this.acquire(path,config,recoverLeaseToken,options,false);
+  }
+  static async openForScopedReset(path:string,config:PublisherConfig,recoverLeaseToken?:string):Promise<SpoolIngester>{
+    return this.acquire(path,config,recoverLeaseToken,{},true);
+  }
+  private static async acquire(path: string, config: PublisherConfig, recoverLeaseToken: string|undefined, options: JournalOptions,scopedReset:boolean): Promise<SpoolIngester> {
     const root = await SecureDirectory.open(path);
     let inbox: SecureDirectory | undefined, history: SecureDirectory | undefined, owner: SpoolIngester | undefined;
     try {
       const actual = (await root.read('publisher.json', 4096)).bytes;
       if (actual.toString('utf8') !== JSON.stringify(config))
         throw new Error('publisher-config-conflict');
-      inbox = await SecureDirectory.open(join(path, 'inbox'));
+      inbox = await SecureDirectory.open(config.requireCollectorEpoch?join(path,'inbox',config.collectorId):join(path,'inbox'));
       history = await SecureDirectory.open(join(path, 'journal'));
       if (recoverLeaseToken) {
         const read = await root.read('collector.lock', 512);
@@ -117,8 +195,11 @@ export class SpoolIngester {
         await file.close();
       }
       await root.sync();
-      owner = new SpoolIngester(root, inbox, history, { ...config }, lease, leaseBytes);
-      await owner.journal.load();
+      owner = new SpoolIngester(root, inbox, history, { ...config }, lease, leaseBytes, options,scopedReset);
+      if(!scopedReset){
+        try{await root.file('reset-intent.json').then(file=>file.handle.close());throw new Error('pending-history-reset');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+        await owner.checkpoints.cleanStaging();await owner.journal.load();
+      }
       return owner;
     }
     catch (error) {
@@ -135,14 +216,39 @@ export class SpoolIngester {
   private acceptScope(e: SourceEnvelopeV1): boolean {
     const m = e.result.metadata;
     return e.collectorId === this.config.collectorId && e.environmentId === this.config.environmentId && e.workspaceId === this.config.workspaceId && e.worktreeId === this.config.worktreeId &&
-      (!m || (m.sourceVersion === '3.26.16' && m.sourceEvent !== 'sessionEnd' && m.workspaceRootHashes.includes(this.config.sourceRootHash)));
+      (!m || (m.sourceVersion === '3.26.16' && m.sourceEvent !== 'sessionEnd' && m.workspaceRootHashes.length === 1 && m.workspaceRootHashes[0] === this.config.sourceRootHash));
   }
   /** Only the lease owner can switch cached helper invocations on or off. */
   async setPublisherEnabled(enabled: boolean): Promise<void> {
+    await this.replaceConfig({ ...this.config, enabled });
+    if(!enabled)await this.stopBroker();
+  }
+  async requireCollectorEpoch():Promise<void>{
+    if(this.config.requireCollectorEpoch)return;
+    if(this.timer||this.pending||this.cursor)throw new Error('epoch-upgrade-requires-quiescent-owner');
+    const parent=await SecureDirectory.open(join(this.root.path,'inbox'));try{await parent.guard();await mkdir(join(parent.path,this.config.collectorId),{mode:0o700}).catch(error=>{if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;});await parent.sync();}finally{await parent.close();}
+    const replacement=await SecureDirectory.open(join(this.root.path,'inbox',this.config.collectorId));
+    try{await this.replaceConfig({...this.config,requireCollectorEpoch:true});}catch(error){await replacement.close();throw error;}
+    const old=this.inbox;this.inbox=replacement;await old.close();
+  }
+  publisherConfig():PublisherConfig{return JSON.parse(JSON.stringify(this.config)) as PublisherConfig;}
+  async rotateCollectorEpoch(collectorId:string):Promise<void>{
+    if(!this.scopedReset||!UUID_PATTERN.test(collectorId)||this.config.enabled)throw new Error('scoped-reset-required');
+    await this.replaceConfig({...this.config,collectorId,requireCollectorEpoch:true,enabled:false});
+  }
+  /** Upgrades legacy configuration only after this process owns the lease. */
+  async setPrivacyPolicy(root: string, exclusions: readonly string[]): Promise<PrivacyPolicy> {
+    await this.setPublisherEnabled(false);
+    const policy = fixturePolicy(root, this.config.sourceRootHash, exclusions);
+    this.restrictPrivacy(policy);
+    await this.replaceConfig({ ...this.config, ...policy, enabled: false });
+    return policy;
+  }
+  restrictPrivacy(policy: PrivacyPolicy): void { this.admissionPolicy = { ...policy, allowedPathHashes: [...policy.allowedPathHashes] }; }
+  private async replaceConfig(next: PublisherConfig): Promise<void> {
     await this.assertOwner();
     const before = await this.root.read('publisher.json', 4096);
     if (before.bytes.toString('utf8') !== JSON.stringify(this.config)) throw new Error('publisher-config-conflict');
-    const next = { ...this.config, enabled };
     const name = `publisher-${randomUUID()}.tmp`;
     const path = join(this.root.path, name);
     const file = await open(path, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
@@ -153,18 +259,20 @@ export class SpoolIngester {
       await this.assertOwner();
       if (!sameFile(before.info, await lstat(join(this.root.path, 'publisher.json')))) throw new Error('publisher-config-changed');
       await rename(path, join(this.root.path, 'publisher.json')); await this.root.sync();
-      this.config.enabled = enabled;
+      for(const key of Object.keys(this.config))if(!Object.hasOwn(next,key))delete (this.config as unknown as Record<string,unknown>)[key];
+      Object.assign(this.config, next);
     } finally { await unlink(path).catch(() => {}); }
   }
-  private async assertOwner(): Promise<void> {
+  async assertOwner(): Promise<void> {
     if (this.closed)
       throw new Error('collector-closed');
     const current = await this.root.read('collector.lock', 512);
     if (!current.bytes.equals(this.leaseBytes) || current.info.nlink !== 1)
       throw new Error('collector-ownership-lost');
-    await this.inbox.guard();
+    if(!this.scopedReset)await this.inbox.guard();
     await this.history.guard();
   }
+  async assertConfiguration():Promise<void>{await this.assertOwner();const actual=await this.root.read('publisher.json',4096);if(actual.bytes.toString('utf8')!==JSON.stringify(this.config))throw new Error('publisher-config-conflict');}
   /** All acknowledgments are conditional on the same ready inode/contents. */
   private async remove(name: string, expected?: {
     bytes: Buffer;
@@ -185,6 +293,7 @@ export class SpoolIngester {
     await unlink(path);
   }
   scan(afterDurable?: () => Promise<void>): Promise<SourceJournalRecord[]> {
+    if(this.scopedReset)return Promise.reject(new Error('scoped-reset-only'));
     if (this.pending)
       return this.pending;
     if (this.closed || this.closing)
@@ -194,6 +303,7 @@ export class SpoolIngester {
   }
   private async scanBatch(afterDurable?: () => Promise<void>): Promise<SourceJournalRecord[]> {
     await this.assertOwner();
+    await this.journal.maintain();
     if (!this.cursor) {
       this.cursor = await opendir(this.inbox.path);
       await this.inbox.guard();
@@ -208,6 +318,7 @@ export class SpoolIngester {
         break;
       }
       const name = entry.name;
+      if(name==='producer-loss.json')continue;
       if (!/^[0-9a-f-]{36}\.json$/.test(name) || !UUID_PATTERN.test(name.slice(0, -5))) {
         // Orphan temp files are never ingested. Delete only old, regular ones;
         // recent publishers may still own their temp files.
@@ -233,8 +344,14 @@ export class SpoolIngester {
       }
       bytes += read.bytes.length;
       const envelope = parseSource(read.bytes);
-      if (!envelope || envelope.eventId !== name.slice(0, -5) || !this.acceptScope(envelope)) {
+      const metadata = envelope?.result.metadata;
+      const policy = this.admissionPolicy;
+      const permitted = !metadata?.pathHash || (validPolicy(policy, this.config.sourceRootHash) && metadata.policyId === policy.policyId && policy.allowedPathHashes.includes(metadata.pathHash));
+      if (!envelope || envelope.eventId !== name.slice(0, -5) || !this.acceptScope(envelope) || !permitted) {
         this.counters.rejected++;
+        if (!envelope || envelope.eventId !== name.slice(0, -5)) this.counters.schemaRejected++;
+        else if (!this.acceptScope(envelope)) this.counters.scopeRejected++;
+        else if (!permitted) this.counters.policyRejected++;
         await this.remove(name).catch(() => { this.counters.failures++; });
         continue;
       }
@@ -244,6 +361,7 @@ export class SpoolIngester {
           this.counters.accepted++;
           records.push(accepted.record);
         }
+        else if (accepted.expired) this.counters.expired++;
         else
           this.counters.duplicates++;
         if (afterDurable)
@@ -257,17 +375,31 @@ export class SpoolIngester {
     return records;
   }
   start(intervalMs = 250, watchNotifications = true): void {
+    if(this.scopedReset)throw new Error('scoped-reset-only');
     if (this.closed || this.closing || this.timer || !Number.isInteger(intervalMs) || intervalMs < 50 || intervalMs > 5000)
       throw new Error('invalid-rescan-state');
-    const wake = () => { if (!this.closing && !this.closed)
-      void this.scan().catch(() => { this.counters.failures++; }); };
-    this.timer = setInterval(wake, intervalMs);
+    const wake = () => {
+      if (this.closing || this.closed || this.pending) return;
+      void this.scan().then(records => {
+        const emptyWatchedQueue = this.watchAvailable && records.length === 0 && !this.cursor;
+        this.nextPollAt = Date.now() + (emptyWatchedQueue ? Math.max(intervalMs,1000) : intervalMs);
+        if (this.rescanRequested) { this.rescanRequested = false; this.nextPollAt = 0; setImmediate(wake); }
+      }).catch(() => { this.counters.failures++; this.nextPollAt = 0; });
+    };
+    this.timer = setInterval(() => { if (Date.now() >= this.nextPollAt) wake(); }, intervalMs);
     this.timer.unref();
     try {
       if (watchNotifications) {
-        this.watcher = watch(this.inbox.path, wake);
+        this.watcher = watch(this.inbox.path, (eventType, filename) => {
+          // Opening/scanning a directory can itself generate metadata notices.
+          // Immutable ready links need rename wakeups; polling covers unnamed
+          // notifications and malformed/changed files without a self-wake loop.
+          if (typeof filename !== 'string' || (filename !== 'producer-loss.json' && (eventType !== 'rename' || !UUID_PATTERN.test(filename.replace(/\.json$/, '')) || !filename.endsWith('.json')))) return;
+          this.nextPollAt = 0; if(this.pending)this.rescanRequested = true;else wake();
+        });
         this.watcher.unref();
-        this.watcher.on('error', () => { this.counters.failures++; });
+        this.watchAvailable = true;
+        this.watcher.on('error', () => { this.watchAvailable = false; this.nextPollAt = 0; this.counters.failures++; });
       }
     }
     catch {
@@ -282,11 +414,23 @@ export class SpoolIngester {
     this.closeTask = this.finishClose();
     return this.closeTask;
   }
+  async quiesce(): Promise<void> {
+    this.closing = true;
+    await this.stopBroker();
+    this.watchAvailable = false;
+    if (this.timer) clearInterval(this.timer);
+    this.watcher?.close();
+    await this.pending?.catch(() => {});
+    await this.journal.whenIdle();
+  }
   private async finishClose(): Promise<void> {
+    try{await this.stopBroker();}catch{this.counters.failures++;}
+    this.watchAvailable = false;
     if (this.timer)
       clearInterval(this.timer);
     this.watcher?.close();
     await this.pending?.catch(() => { });
+    await this.journal.whenIdle();
     await this.cursor?.close().catch(() => { });
     this.cursor = undefined;
     try {

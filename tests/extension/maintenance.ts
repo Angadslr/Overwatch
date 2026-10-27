@@ -1,0 +1,80 @@
+import * as vscode from 'vscode';
+import assert from 'node:assert/strict';
+import {readFile, writeFile, readdir, access, stat} from 'node:fs/promises';
+import {join} from 'node:path';
+import type {SupervisionApi} from '../../src/commands';
+
+export async function verifyMaintenance(api:SupervisionApi, root:string, invoke:(hook:string,path:string,extra?:Record<string,unknown>)=>Promise<void>):Promise<string[]> {
+ assert.ok(api.manager);
+ const checks:string[] = [], storage=join(root,'.local','supervision-storage');
+ assert.equal((await vscode.commands.executeCommand<{ok:boolean}>('overwatch.supervision.enable'))?.ok,true);
+ const broker=JSON.parse(await readFile(join(storage,'publisher.json'),'utf8')).broker as {path:string;token:string}|undefined;
+ assert.ok(broker,'native test run must activate the production broker');
+ await invoke('beforeReadFile','read.txt',{conversation_id:'t23-synthetic-export'});
+ const deadline=Date.now()+5000;
+ while(api.manager.evidence.size===0 && Date.now()<deadline) await new Promise(resolve=>setTimeout(resolve,25));
+ assert.ok(api.manager.evidence.size>0);
+ const preview=await api.maintenance.prepareExport();
+ const report=JSON.parse(preview.text);
+ assert.equal(report.manifest.relativePaths,false);
+ assert.ok(report.source.included>0);
+ for(const marker of ['FAKE_SECRET',root,'read.txt','fileKey','pathHash',broker.token,broker.path]) assert.equal(preview.text.includes(marker),false);
+ const saved=await api.maintenance.saveExport(preview.token);
+ assert.equal(await readFile(saved,'utf8'),preview.text);
+ assert.equal((await stat(saved)).mode&0o777,0o600);
+ await assert.rejects(api.maintenance.saveExport(preview.token),/export-review-stale/);
+ checks.push('reviewed export saves exact redacted bytes privately; source input, paths and consumed tokens are excluded');
+
+ const cancelled=await api.maintenance.prepareExport();
+ const before=await readdir(join(storage,'exports'));
+ await vscode.commands.executeCommand('overwatch.supervision.cancelMaintenanceReview');
+ await assert.rejects(api.maintenance.saveExport(cancelled.token),/export-review-stale/);
+ assert.deepEqual(await readdir(join(storage,'exports')),before);
+ checks.push('installed cancel command invalidates export review without writing another artifact');
+
+ const fileBefore=await readFile(join(root,'read.txt'),'utf8');
+ const cancellation=await api.maintenance.prepareReset();
+ assert.equal(api.manager.enabled,false);
+ assert.equal(JSON.parse(await readFile(join(storage,'publisher.json'),'utf8')).broker,undefined);
+ await assert.rejects(access(broker.path));
+ await assert.rejects(access(join(root,'.cursor','hooks.json')));
+ const segments=(await readdir(join(storage,'journal'))).filter(name=>name.endsWith('.ndjson'));
+ assert.ok(segments.length>0);
+ const journalBefore=await Promise.all(segments.map(name=>readFile(join(storage,'journal',name),'utf8')));
+ await vscode.commands.executeCommand('overwatch.supervision.cancelMaintenanceReview');
+ await assert.rejects(api.maintenance.commitReset(cancellation.token),/reset-review-expired/);
+ assert.deepEqual(await Promise.all(segments.map(name=>readFile(join(storage,'journal',name),'utf8'))),journalBefore);
+ checks.push('reset review stops collection; cancellation keeps journal bytes and releases ownership');
+
+ const preserved=join(storage,'keep-user.txt'); await writeFile(preserved,'FAKE_SECRET_UNRELATED',{mode:0o600});
+ const oldEpoch=JSON.parse(await readFile(join(storage,'publisher.json'),'utf8')).collectorId;
+ const reset=await api.maintenance.prepareReset();
+ assert.equal(reset.includeExports,false); assert.ok(reset.preservedUnknownEntries>0);
+ await api.maintenance.commitReset(reset.token);
+ assert.equal(api.manager.evidence.size,0); assert.equal(api.manager.store.snapshot().operations.length,0);
+ assert.equal(api.manager.observations.snapshot().records.length,0);
+ assert.equal(api.manager.identities.snapshot().sessions.length,0);
+ assert.equal(api.display.frozen,false); assert.ok(api.details.snapshot().text.includes('unavailable'));
+ assert.deepEqual(await readdir(join(storage,'journal')),[]);
+ await assert.rejects(access(join(storage,'inbox',oldEpoch)));
+ await assert.rejects(access(join(storage,'projection-checkpoint.json')));
+ await assert.rejects(access(join(storage,'collector.lock')));
+ assert.equal(await readFile(saved,'utf8'),preview.text);
+ assert.equal(await readFile(preserved,'utf8'),'FAKE_SECRET_UNRELATED');
+ assert.equal(await readFile(join(root,'read.txt'),'utf8'),fileBefore);
+ checks.push('reviewed clear rotates the generation, empties history and projections, preserves user files and unselected exports, and leaves collection off');
+
+ const includeExports=await api.maintenance.prepareReset(true);
+ await api.maintenance.commitReset(includeExports.token);
+ await assert.rejects(access(saved));
+ assert.equal((await vscode.commands.executeCommand<{ok:boolean}>('overwatch.supervision.enable'))?.ok,true);
+ assert.equal(api.manager.evidence.size,0);
+ assert.equal(api.manager.health.snapshot().nativeDelivery,'awaiting-first-event');
+ await invoke('beforeReadFile','read.txt',{conversation_id:'t23-fresh-generation'});
+ const freshDeadline=Date.now()+5000;
+ while(api.manager.evidence.size===0 && Date.now()<freshDeadline) await new Promise(resolve=>setTimeout(resolve,25));
+ assert.ok(api.manager.evidence.size>0);
+ await api.disable();
+ checks.push('explicit export scope removes saved exports; reenable starts empty and accepts fresh-generation evidence');
+ return checks;
+}

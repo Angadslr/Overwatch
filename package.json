@@ -28,6 +28,11 @@
   },
   "contributes": {
     "commands": [
+      {"command":"overwatch.supervision.previewExport","title":"Agent Supervision: Preview Local Diagnostic Export"},
+      {"command":"overwatch.supervision.saveReviewedExport","title":"Agent Supervision: Save Reviewed Local Export"},
+      {"command":"overwatch.supervision.previewHistoryReset","title":"Agent Supervision: Preview Clear Owned History"},
+      {"command":"overwatch.supervision.clearReviewedHistory","title":"Agent Supervision: Clear Reviewed Owned History"},
+      {"command":"overwatch.supervision.cancelMaintenanceReview","title":"Agent Supervision: Cancel Diagnostic or History Review"},
       {
         "command": "overwatch.probe.enable",
         "title": "Overwatch Probe: Enable in Fixture Workspace"
@@ -71,6 +76,51 @@
       {
         "command": "overwatch.supervision.report",
         "title": "Agent Supervision: Save Collection Report"
+      },
+      {
+        "command": "overwatch.supervision.filterActivity",
+        "title": "Agent Supervision: Filter Activity",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "overwatch.supervision.clearActivityFilters",
+        "title": "Agent Supervision: Clear Activity Filters",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "overwatch.supervision.freezeDisplay",
+        "title": "Agent Supervision: Freeze or Resume Display",
+        "icon": "$(debug-pause)"
+      },
+      {
+        "command": "overwatch.supervision.toggleDetailsBeside",
+        "title": "Agent Supervision: Toggle File Details Beside Editor",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "overwatch.supervision.toggleFollowLatest",
+        "title": "Agent Supervision: Toggle Follow Latest Activity",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "overwatch.supervision.inspectAttention",
+        "title": "Agent Supervision: Inspect Attention Item",
+        "icon": "$(info)"
+      },
+      {
+        "command": "overwatch.supervision.acknowledgeAttention",
+        "title": "Agent Supervision: Acknowledge Attention Item",
+        "icon": "$(check)"
+      },
+      {
+        "command": "overwatch.supervision.toggleMuteAttention",
+        "title": "Agent Supervision: Mute or Unmute Attention Rule",
+        "icon": "$(bell-slash)"
+      },
+      {
+        "command": "overwatch.supervision.runSelfCheck",
+        "title": "Agent Supervision: Run Helper and Collector Self-check",
+        "icon": "$(checklist)"
       }
     ],
     "viewsContainers": {
@@ -86,7 +136,23 @@
       "overwatch-supervision": [
         {
           "id": "overwatch.supervision.files",
-          "name": "Native File Activity"
+          "name": "Conversations"
+        },
+        {
+          "id": "overwatch.supervision.byFile",
+          "name": "Files"
+        },
+        {
+          "id": "overwatch.supervision.activity",
+          "name": "Activity"
+        },
+        {
+          "id": "overwatch.supervision.attention",
+          "name": "Attention"
+        },
+        {
+          "id": "overwatch.supervision.health",
+          "name": "Source Health"
         }
       ]
     },
@@ -106,11 +172,97 @@
           "command": "overwatch.supervision.refresh",
           "when": "view == overwatch.supervision.files",
           "group": "navigation@3"
+        },
+        {
+          "command": "overwatch.supervision.filterActivity",
+          "when": "view == overwatch.supervision.activity",
+          "group": "navigation@1"
+        },
+        {
+          "command": "overwatch.supervision.clearActivityFilters",
+          "when": "view == overwatch.supervision.activity",
+          "group": "navigation@2"
+        },
+        {
+          "command": "overwatch.supervision.freezeDisplay",
+          "when": "view == overwatch.supervision.activity",
+          "group": "navigation@3"
+        },
+        {
+          "command": "overwatch.supervision.toggleDetailsBeside",
+          "when": "view == overwatch.supervision.activity",
+          "group": "navigation@4"
+        },
+        {
+          "command": "overwatch.supervision.toggleFollowLatest",
+          "when": "view == overwatch.supervision.activity",
+          "group": "navigation@5"
+        },
+        {
+          "command": "overwatch.supervision.runSelfCheck",
+          "when": "view == overwatch.supervision.health",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "overwatch.supervision.inspectAttention",
+          "when": "view == overwatch.supervision.attention && viewItem == overwatchAttention",
+          "group": "navigation"
+        },
+        {
+          "command": "overwatch.supervision.acknowledgeAttention",
+          "when": "view == overwatch.supervision.attention && viewItem == overwatchAttention",
+          "group": "inline"
+        },
+        {
+          "command": "overwatch.supervision.toggleMuteAttention",
+          "when": "view == overwatch.supervision.attention && viewItem == overwatchAttention",
+          "group": "inline"
         }
       ]
+    },
+    "configuration": {
+      "title": "Agent Supervision",
+      "properties": {
+        "agentSupervision.allowExistingHooks": {
+          "type": "boolean",
+          "default": false,
+          "scope": "window",
+          "description": "Allow adding observation hooks to a valid existing project hook configuration. Review .cursor/hooks.json first. Keeps an exact private backup and restores it only when the installed configuration is unchanged; existing permission hooks retain their behavior."
+        },
+        "agentSupervision.pathExclusions": {
+          "type": "array",
+          "default": [],
+          "maxItems": 100,
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "description": "Additional relative path globs excluded before collection. Changing this setting stops collection; enable again to resume."
+        },
+        "agentSupervision.detailsBeside": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "description": "Open read-only activity details beside the source editor; turn off to use its editor group. Applies to the next selection."
+        },
+        "agentSupervision.followLatest": {
+          "type": "boolean",
+          "default": false,
+          "scope": "window",
+          "description": "Scroll the Activity view to new events without moving focus or selection. Frozen display does not follow."
+        },
+        "agentSupervision.notifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show bounded local notifications for qualified high/medium overlap advisories. Reads and ordinary success stay quiet."
+        }
+      }
     }
   },
   "scripts": {
+    "dev:landing": "node scripts/serve-landing.mjs",
     "generate:contracts": "node scripts/generate-contracts.mjs",
     "check:contracts": "node scripts/generate-contracts.mjs --check",
     "build:helper": "node scripts/go-helper.mjs build",
@@ -123,14 +275,16 @@
     "probe:environment": "node scripts/environment.mjs",
     "package:probe": "npm run build && vsce package --no-dependencies --allow-missing-repository --skip-license --no-rewrite-relative-links --out overwatch-native-probe-0.0.3.vsix",
     "test:extension": "npm run build && npm run build:helper && node scripts/test-extension.mjs",
-    "supervision:launch": "npm run build && npm run build:helper && node scripts/launch-supervision.mjs"
+    "supervision:launch": "npm run build && npm run build:helper && node scripts/launch-supervision.mjs",
+    "supervision:details": "node scripts/supervision-details.mjs"
   },
   "devDependencies": {
     "@types/node": "22.18.10",
     "@types/vscode": "1.105.0",
     "@vscode/vsce": "4.0.0",
     "esbuild": "0.28.2",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "jsonc-parser": "3.3.1"
   },
   "dependencies": {
     "ajv": "8.20.0"

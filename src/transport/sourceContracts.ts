@@ -28,12 +28,15 @@ export type SourceEnvelopeV1 = {
       interrupted?: boolean;
       durationMs?: number;
       workspaceRootHashes: Array<string>;
+      policyId?: string;
     };
     counters: {
       unknownFields: number;
       sensitiveFields: number;
       invalidFields: number;
-      gap?: "unsupported-hook" | "input-read-failed" | "input-too-large" | "invalid-utf8" | "input-too-deep" | "invalid-json" | "invalid-object" | "hook-mismatch" | "invalid-tool-input" | "identity-unavailable" | "projection-too-large" | "telemetry-panic" | "input-or-consumer-timeout";
+      gap?: "unsupported-hook" | "input-read-failed" | "input-too-large" | "invalid-utf8" | "input-too-deep" | "invalid-json" | "invalid-object" | "hook-mismatch" | "invalid-tool-input" | "identity-unavailable" | "projection-too-large" | "telemetry-panic" | "input-or-consumer-timeout" | "self-check";
+      privacy?: "excluded-path" | "policy-unavailable" | "path-unresolved";
+      checkId?: string;
     };
   };
   receivedAt: string;

@@ -1,0 +1,15 @@
+{
+  "measuredAt": "2026-10-26T06:16:49.207Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "records": 2000,
+  "retainedBytes": 1214893,
+  "sourceValidationMs": 24.45812499999738,
+  "coldProjectionMs": 45.62758300000132,
+  "checkpointValidationAndProjectionMs": 29.758207999999286,
+  "identicalProjection": true,
+  "limitations": "One synthetic local sample; source journal validation remains mandatory. Checkpoint timings include checksum and schema validation. This does not measure native hook latency or establish a speedup."
+}

@@ -33,6 +33,8 @@ type Counters struct {
 	SensitiveFields uint32 `json:"sensitiveFields"`
 	InvalidFields   uint32 `json:"invalidFields"`
 	Gap             string `json:"gap,omitempty"`
+	Privacy         string `json:"privacy,omitempty"`
+	CheckID         string `json:"checkId,omitempty"`
 }
 
 // Metadata contains only allowlisted enums, bounded numbers and hashed hints.
@@ -52,6 +54,7 @@ type Metadata struct {
 	SubagentID           string   `json:"subagentId,omitempty"`
 	Tool                 string   `json:"tool"`
 	PathHash             string   `json:"pathHash,omitempty"`
+	PolicyID             string   `json:"policyId,omitempty"`
 	WorkspaceRootHashes  []string `json:"workspaceRootHashes,omitempty"`
 	Status               string   `json:"status,omitempty"`
 	FailureType          string   `json:"failureType,omitempty"`
@@ -69,6 +72,18 @@ var versionPattern = regexp.MustCompile(`^[0-9]{1,8}\.[0-9]{1,8}\.[0-9]{1,8}$`)
 // ProjectWithEntropy permits deterministic identity-failure testing. Production
 // callers use Project, which uses the OS cryptographic random source.
 func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
+	return project(r, hook, entropy, nil)
+}
+
+// PrivacyFilter receives temporary raw locators. Only an approved hash and a
+// fixed coverage reason may cross this boundary; raw strings never escape.
+type PrivacyFilter func(string, []string) (string, string)
+
+func ProjectWithPrivacy(r io.Reader, hook string, filter PrivacyFilter) Result {
+	return project(r, hook, rand.Reader, filter)
+}
+
+func project(r io.Reader, hook string, entropy io.Reader, filter PrivacyFilter) Result {
 	gap := func(code string) Result { return Result{Counters: Counters{Gap: code}} }
 	if !output.Known(hook) {
 		return gap("unsupported-hook")
@@ -93,6 +108,14 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 	m := &Metadata{Version: 1, SourceEvent: hook, ReceivedAt: time.Now().UTC().Format("2006-01-02T15:04:05.000Z"), Tool: "unknown"}
 	matched := false
 	pathHashes := make(map[string]bool)
+	var rawPaths, rawRoots []string
+	path := func(raw json.RawMessage) {
+		if value, ok := text(raw, 4096); ok {
+			rawPaths = append(rawPaths, value)
+		} else {
+			counters.InvalidFields++
+		}
+	}
 	valid := fields(data, func(key string, raw json.RawMessage) {
 		switch key {
 		case "hook_event_name":
@@ -113,9 +136,7 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 		case "subagent_id":
 			m.SubagentID = opaque(raw, "subagent", 256, &counters)
 		case "file_path":
-			if hash := opaque(raw, "path-hint", 4096, &counters); hash != "" {
-				pathHashes[hash] = true
-			}
+			path(raw)
 		case "cursor_version":
 			if value, ok := text(raw, 64); ok && versionPattern.MatchString(value) {
 				m.SourceVersion = value
@@ -148,9 +169,7 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 				if !fields(raw, func(key string, value json.RawMessage) {
 					switch key {
 					case "file_path", "path", "target_file":
-						if hash := opaque(value, "path-hint", 4096, &counters); hash != "" {
-							pathHashes[hash] = true
-						}
+						path(value)
 					default:
 						countDropped(key, &counters)
 					}
@@ -178,6 +197,8 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 					}
 					if key := opaque(item, "workspace-root", 4096, &counters); key != "" {
 						m.WorkspaceRootHashes = append(m.WorkspaceRootHashes, key)
+						value, _ := text(item, 4096)
+						rawRoots = append(rawRoots, value)
 					}
 				}
 			} else {
@@ -198,7 +219,20 @@ func ProjectWithEntropy(r io.Reader, hook string, entropy io.Reader) Result {
 	if counters.Gap != "" {
 		return Result{Counters: counters}
 	}
-	if len(pathHashes) == 1 {
+	for _, value := range rawPaths {
+		if filter != nil {
+			hash, reason := filter(value, rawRoots)
+			if reason != "" {
+				counters.Privacy = reason
+			} else if hash != "" {
+				pathHashes[hash] = true
+			}
+		} else {
+			digest := sha256.Sum256([]byte("path-hint\x00" + value))
+			pathHashes[hex.EncodeToString(digest[:])] = true
+		}
+	}
+	if len(pathHashes) == 1 && counters.Privacy == "" {
 		for hash := range pathHashes {
 			m.PathHash = hash
 		}

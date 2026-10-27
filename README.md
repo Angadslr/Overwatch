@@ -1,39 +1,30 @@
 # Overwatch
 
-Local, observation-only supervision for native Cursor Agent Chat. The repository implements the **Phase A native integration probe** and the T04–T08 contract, Go helper, durable transport, evidence core and native fixture file-activity tree. T08 and G1 are complete; stable conversation aliases follow in T09. See [todo.md](todo.md) for execution status and [docs/compatibility.md](docs/compatibility.md) for measured limits.
+Local, observation-only supervision for native Cursor Agent Chat. T01–T21, T23 and engineering checkpoint G2b are complete. T22 resource targets remain open, so G3/T24 packaging is still gated. The current implementation includes the contract, Go helper, private journal, scoped identities, lifecycle evidence, independent filesystem/editor observations, privacy policy, Conversations/Files views and Explorer badges. Native collection is still limited to six invented fixture names on local macOS Apple Silicon. See [todo.md](todo.md) and [measured compatibility](docs/compatibility.md).
 
-## Run the probe
+## Development and verification
 
-Requires macOS Apple Silicon, Cursor installed in `/Applications/Cursor.app`, and Node.js 22 or later. The qualified development Node is 24.21.0. The separate Go helper foundation is implemented in T05; this disposable discovery probe continues to use Node and makes no startup-performance claim.
+Requires Cursor in `/Applications/Cursor.app`, Node.js 22+ and Go 1.26+ (the wrapper prefers the ignored local toolchain). Run `npm run check`, `npm run test:unit`, `npm run test:helper`, and `npm run test:integration`. `npm run test:extension` launches a disposable installed Cursor host with fresh fixture storage. For interactive keyboard/high-contrast review, use `OVERWATCH_EXTENSION_MANUAL=1 OVERWATCH_EXTENSION_RUN=review npm run test:extension` and mark that test profile's `manual-reviewed` file only after reviewing its window.
+
+Use `npm run supervision:launch`, explicitly enable collection, and open the **Agent Supervision** activity-bar icon. **Conversations** shows source-session/lifecycle evidence; **Files** groups the same activity by file evidence. Explorer shows recent `!`, `W`, `R` or `?` badges with qualified tooltips. Badges expire after 30 seconds without erasing completion history. See [view behavior](docs/supervision-views.md).
+
+Set `agentSupervision.pathExclusions` for additional relative path globs. Changing it stops collection; enable again to resume. The helper checks a versioned hash allowlist before publication, and default reports omit file locators. See [privacy enforcement](docs/privacy.md). Collection remains partial; source session participation does not prove file actor, disk persistence, acceptance or model use.
+
+Use **Agent Supervision: Preview Local Diagnostic Export** to review a redacted local snapshot, then **Save Reviewed Local Export** to save those exact bytes. **Preview Clear Owned History** reviews this workspace’s deletion scope before a separate confirmation; saved exports are retained by default. Cancellation preserves history and leaves collection off. See [reviewed export and deletion](docs/privacy.md) and [open resource findings](docs/performance.md).
+
+The old Node discovery launcher is now response-only, and its old enable commands route to the policy-enforced supervisor. Historical Phase A evidence and packages remain documented in [qualification](docs/phase-a-qualification.md). They are not the current collection implementation. Development mode is required for the Go supervision slice until later alpha packaging.
+
+## Activity inspection and display controls
+
+The **Activity** view adds chronological events, shared conversation/operation/time/evidence filters, and **Freeze or Resume Display**. Freeze holds the three views while collection continues; Explorer remains live. Selecting activity opens a read-only metadata inspector, including missing/deleted-file evidence. Follow latest defaults to off.
+
+Details open beside the source editor by default. Toggle **Agent Supervision: Toggle File Details Beside Editor**, change `agentSupervision.detailsBeside`, or run:
 
 ```sh
-npm ci --ignore-scripts
-npm run check
-npm run test:unit
-npm run test:integration
-npm run probe:environment
-npm run probe:launch
+npm run supervision:details -- toggle --workspace ".local/t08-native fixture with spaces"
 ```
 
-`probe:launch` creates invented files under `.local/native fixture with spaces` and opens a Cursor Extension Development Host. It does not install a global extension or edit hooks in a real project. `CURSOR_APP` may select another installed app bundle when running the launcher.
-
-The launcher attempts the documented plugin registration API. In the tested Cursor 3.25.9 and 3.26.16 hosts, that API is unavailable. Open the Command Palette and run **Overwatch Probe: Enable Project Hook Fallback in Fixture Workspace**. It creates `.cursor/hooks.json` exclusively in the invented workspace and refuses to overwrite an existing configuration. The exact generated configuration is saved as `.local/probe-storage/project-hooks.proposed.json` inside that fixture.
-
-Use the native smoke instructions in [docs/native-smoke-test.md](docs/native-smoke-test.md). Inspect **Overwatch Probe: Show Compatibility Report** and the fixture's `.local/probe-storage/inbox`. The report's automatic `nativeDelivery: not-verified` deliberately requires a separate reviewed action trace; a successful registration or a file count alone cannot prove delivery.
-
-Run **Overwatch Probe: Disable and Reload Fixture Window** when finished. Cursor 3.25.9 can retain cached project hooks after file deletion, so clearing the invocation requires a reload. Plain **Disable** removes the collection marker and prevents the corrected helper from persisting telemetry, but cached processes may still launch until reload. Normal extension-host shutdown also removes an unchanged owned project-hook file. If it was modified after installation, cleanup preserves it and reports `modified-preserved`; inspect and remove only the probe entries manually. A process crash can leave the fixture hook file behind. Do not promote this fixture-only lifecycle to production without T20/T21 ownership and recovery work.
-
-## Probe boundaries
-
-- Workspace trust, local macOS arm64, and an explicit invented-fixture marker gate execution.
-- The helper drops content, prompts, commands, outputs, email, reasoning, and unknown fields before publication. Source identifiers are hashed; only named invented fixture paths are recorded.
-- Input is capped at 32 MiB. Publication uses exclusive temporary files and atomic rename; the inbox has an approximate 500-file limit. At the limit, telemetry is dropped. This probe does not yet have the production gap counters or journal.
-- Permission-bearing hooks return `{"permission":"allow"}`; the installed observational hooks return `{}`. Nothing injects prompts or changes tool input.
-- The tests use Node's test runner. Unit tests compile TypeScript into `.local/unit-tests`; integration tests launch the actual bundled hook process. These are distinct from real Cursor evidence.
-
-A machine-specific probe VSIX can be rebuilt with `npm run package:probe`; its native install/read/edit/disable/uninstall was verified. See `docs/probe-package-verification.json` for the historical 0.0.2 package and [Phase A qualification](docs/phase-a-qualification.md) for the tested 0.0.3 checksum and cleanup. The probe package remains discovery-only; the T08 supervision slice runs in development mode. Alpha packaging, export and remote/cloud adapters remain later tasks.
-
-The separate Go helper accepts `HOOK STORAGE`, projects safe metadata, and atomically publishes through the [T06 local transport](docs/local-transport.md). Its source journal supports validated recovery, durable ordering and deduplication. The [T07 adapter/reducer](docs/cursor-file-projection.md) keeps attempts, completions and edit reports separate. T08 connects these modules to owned project hooks and a native tree. A fixed allowlist maps six invented fixture names to current local files; general physical path identity remains T10. Go 1.26+ supports `npm run build:helper` and `npm run test:helper`; the wrapper uses the ignored local toolchain when present. `test:integration` now builds and exercises the actual Go helper as well as the Node discovery probe.
+Use `beside`, `current`, or `status` instead of `toggle` for explicit placement/status. The command preserves workspace settings comments and updates the next selection in the running editor. See [activity inspection and terminal controls](docs/activity-inspection.md).
 
 ## Run the T08 native supervision slice
 
@@ -44,3 +35,19 @@ npm run supervision:launch
 In the resulting trusted invented-fixture window, run **Agent Supervision: Enable in Fixture Workspace**. Ask ordinary native Agent Chat to read `read.txt` and edit `edit.txt`. The Agent Supervision sidebar shows source-session identity, relative paths, evidence and age. Selecting a row opens its current fixture file. Use **Agent Supervision: Disable and Reload Fixture Window** when finished; resolve any pending invented edit review before reload.
 
 `npm run test:extension` runs the installed Cursor extension host in an isolated test profile. It uses synthetic metadata and is separate from the completed ordinary native smoke run. No global extension installation or real-project hooks are required. See [T08 verification and limits](docs/t08-vertical-slice.md). The UI reports source completion and edit reports; disk persistence, acceptance and child file ownership remain unknown.
+
+T09 aliases appear as **Session N**, with the source identifier available in tooltips. Proven child lifecycle rows appear beneath their source parent; child file ownership remains unverified. T10 resolves eligible local paths with root/environment/worktree separation and secret-path exclusions, and the current-file opener uses those checks. It does not reverse hashed historical paths or enable collection outside the invented fixture. See [identity/path usage, review and verification](docs/identity-and-paths.md).
+
+T11 keeps conversations, turns and operations independent. A reported turn completion leaves pending file requests unresolved. After 30 seconds, an unfinished request says **Completion not observed**; replayed open requests say **Live state unknown after reload**. The status distinguishes **Collector ready · awaiting first native event** from fresh source activity and always discloses partial coverage. Reload the development window and explicitly re-enable collection to load the updated view. See [T11 lifecycle/health verification](docs/lifecycle-and-health.md).
+
+T12 adds a separate **Local file observations** group for eligible disk notifications, unsaved buffer changes and editor-save reports, all labelled **actor unknown**. These facts do not increase agent read counts or verify native delivery. Opening a row safely opens its current local file. Watcher coverage is partial and local records are bounded to this host's memory; they are not automatically saved to the source journal. Reload the development window and re-enable collection to load the updated bindings. See [T12 verification and limits](docs/file-observations.md).
+
+## Attention and Source Health
+
+**Attention** exposes qualified advisories, uncertainty, and local acknowledge/mute controls. Notifications default off. The current native source profile still cannot prove physical overlap; it is labelled accordingly. **Source Health** separates registration, helper response, ingestion, ownership and native source evidence. Run **Agent Supervision: Run Helper and Collector Self-check** to test the local pipeline without starting an agent or making a model call. See [attention](docs/overlap-and-attention.md) and [troubleshooting](docs/troubleshooting.md).
+
+Previously enabled collection resumes after a normal Cursor reload. Another window on the same physical checkout stays passive; use the owning window. See [window ownership and recovery](docs/window-ownership.md).
+
+Existing project hooks are refused by default. Review them before opting in with `agentSupervision.allowExistingHooks`; exact backup and conditional restoration are described in [setup and cleanup](docs/setup-and-cleanup.md).
+
+For independent Gemini/Claude verification, use [the executable test map and acceptance checklist](docs/INDEPENDENT-TEST-PLAN.md). Current broker/replay results and open resource gates are recorded in [performance findings](docs/performance.md).

@@ -17,8 +17,12 @@ export function quotePosix(value: string): string {
 
 export async function isFixture(root: string): Promise<boolean> {
   try {
-    return (await readFile(join(root, '.overwatch-probe-fixture'), 'utf8')).trim() === FIXTURE_MARKER;
+    await assertFixtureRoot(root);return true;
   } catch { return false; }
+}
+export async function assertFixtureRoot(root:string):Promise<void>{
+ if(await realpath(root)!==root)throw new Error('noncanonical-fixture-root');const marker=await lstat(join(root,'.overwatch-probe-fixture'));
+ if(!marker.isFile()||marker.isSymbolicLink()||marker.size>128||(await readFile(join(root,'.overwatch-probe-fixture'),'utf8')).trim()!==FIXTURE_MARKER)throw new Error('invented-fixture-required');
 }
 
 export function buildHookConfig(nodePath: string, helperPath: string, storage: string, root: string) {

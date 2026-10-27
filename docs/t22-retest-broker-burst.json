@@ -1,0 +1,51 @@
+{
+  "recordedAt": "2026-10-27T03:16:02.208Z",
+  "nativeDelivery": false,
+  "ui": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "collectorGenerationRequired": true,
+  "consumerEnabledDuringPublication": true,
+  "transport": "authenticated-broker-with-spool-fallback",
+  "producerGomaxprocs": "default",
+  "producer": {
+    "type": "complete",
+    "stage": "burst",
+    "attempts": 2000,
+    "errors": 0,
+    "responseP50Ms": 4.264458,
+    "responseP95Ms": 4.856416,
+    "closedP50Ms": 17.632042,
+    "closedP95Ms": 24.277417,
+    "closedMaxMs": 41.889083,
+    "elapsedMs": 10018.619208
+  },
+  "targetPerSecond": 200,
+  "targetSeconds": 10,
+  "accepted": 2000,
+  "complete": true,
+  "publicationElapsedMs": 10042.1425,
+  "drainCompletedMs": 10042.384959,
+  "pendingAfterProducers": 0,
+  "pendingFiles": 0,
+  "inboxBytes": 0,
+  "counters": {
+    "accepted": 2000,
+    "duplicates": 0,
+    "rejected": 0,
+    "failures": 0,
+    "schemaRejected": 0,
+    "scopeRejected": 0,
+    "policyRejected": 0,
+    "expired": 0
+  },
+  "collectorCpuMs": 1762.773,
+  "collectorIncrementalRssBytes": 29540352,
+  "limitations": [
+    "Synthetic inputs from a separate producer process; this is not native Agent delivery.",
+    "Resource counters cover the collector process, excluding producer and helper children.",
+    "Consumer-off publishes first, then drains; it isolates producer behavior rather than measuring live view latency."
+  ]
+}

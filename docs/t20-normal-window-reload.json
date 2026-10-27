@@ -1,0 +1,20 @@
+{
+  "recordedAt": "2026-10-26T06:32:26.196Z",
+  "passed": true,
+  "editor": "Cursor 3.26.16",
+  "editorApiVersion": "1.128.0",
+  "platform": "macOS arm64",
+  "fixture": ".local/t20-native ownership fixture",
+  "nativeDelivery": false,
+  "method": "Normal development window controlled through native accessibility UI, separate from extension-test mode.",
+  "checks": [
+    "Explicit Enable showed collector ready and owned project hooks.",
+    "Developer Reload Window completed without a second Enable action.",
+    "View Show Agent Supervision after reload showed Collector ready awaiting first native event and Owned consumer active.",
+    "Publisher enabled and an exclusive lease existed after reload.",
+    "Explicit Disable showed unowned and removed project hooks; named manual window closed."
+  ],
+  "limitations": [
+    "No ordinary Agent/model turn was run; historical T03 native two-window delivery qualification remains separate."
+  ]
+}

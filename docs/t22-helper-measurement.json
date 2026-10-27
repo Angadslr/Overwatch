@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-10-26T06:43:55.987Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "firstLaunch": {
+    "responseMs": 11.854416999999998,
+    "closedMs": 23.375249999999994,
+    "maxRssBytes": 6995968,
+    "userSeconds": 0,
+    "systemSeconds": 0
+  },
+  "warm": {
+    "samples": 100,
+    "responseP50Ms": 4.330749999999853,
+    "responseP95Ms": 4.739874999999984,
+    "closedP50Ms": 14.090584000000035,
+    "closedP95Ms": 15.954082999999855,
+    "maxRssBytes": 6799360,
+    "totalUserSeconds": 0,
+    "totalSystemSeconds": 0
+  },
+  "limitations": [
+    "Each invocation starts a fresh helper process. Warm means repeated OS-cache/storage samples, not a persistent helper.",
+    "First launch is not a forced cold OS cache.",
+    "Response and close timings include /usr/bin/time and process startup; resource metrics are for the helper child. CPU is quantized by the OS time report."
+  ]
+}

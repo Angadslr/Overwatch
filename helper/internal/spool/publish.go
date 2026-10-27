@@ -1,4 +1,4 @@
-// Package spool publishes metadata without a shared append file or listener.
+// Package spool publishes metadata through an owned broker or durable inbox.
 // The qualified platform is local POSIX; same-user processes are not isolated.
 package spool
 
@@ -26,13 +26,18 @@ var uuidID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-
 var hashID = regexp.MustCompile(`^[0-9a-f]{64}$`)
 
 type Config struct {
-	Version        int    `json:"configVersion"`
-	CollectorID    string `json:"collectorId"`
-	EnvironmentID  string `json:"environmentId"`
-	WorkspaceID    string `json:"workspaceId"`
-	WorktreeID     string `json:"worktreeId,omitempty"`
-	SourceRootHash string `json:"sourceRootHash"`
-	Enabled        bool   `json:"enabled"`
+	Version               int             `json:"configVersion"`
+	CollectorID           string          `json:"collectorId"`
+	EnvironmentID         string          `json:"environmentId"`
+	WorkspaceID           string          `json:"workspaceId"`
+	WorktreeID            string          `json:"worktreeId,omitempty"`
+	SourceRootHash        string          `json:"sourceRootHash"`
+	Enabled               bool            `json:"enabled"`
+	PrivacyVersion        int             `json:"privacyVersion,omitempty"`
+	PolicyID              string          `json:"policyId,omitempty"`
+	AllowedPathHashes     []string        `json:"allowedPathHashes,omitempty"`
+	RequireCollectorEpoch bool            `json:"requireCollectorEpoch,omitempty"`
+	Broker                *BrokerEndpoint `json:"broker,omitempty"`
 }
 type Envelope struct {
 	Version       int          `json:"transportVersion"`
@@ -76,12 +81,7 @@ func Build(config Config, result input.Result) (Envelope, error) {
 	id := ""
 	if result.Metadata != nil {
 		id = result.Metadata.EventID
-		matched := false
-		for _, root := range result.Metadata.WorkspaceRootHashes {
-			if root == config.SourceRootHash {
-				matched = true
-			}
-		}
+		matched := len(result.Metadata.WorkspaceRootHashes) == 1 && result.Metadata.WorkspaceRootHashes[0] == config.SourceRootHash
 		if !matched || result.Metadata.SourceVersion != "3.26.16" || result.Metadata.SourceEvent == "sessionEnd" {
 			return Envelope{}, errors.New("unsupported-source-scope")
 		}
@@ -110,6 +110,9 @@ func Build(config Config, result input.Result) (Envelope, error) {
 // PublishResult reads extension-owned configuration, builds one immutable
 // envelope, and retries publication with the same identity and encoded bytes.
 func PublishResult(path string, result input.Result) error {
+	return PublishResultForCollector(path, result, "")
+}
+func PublishResultForCollector(path string, result input.Result, expected string) error {
 	canonical, err := filepath.EvalSymlinks(path)
 	if err != nil || !filepath.IsAbs(path) || canonical != path {
 		return errors.New("unsafe-spool-root")
@@ -141,6 +144,11 @@ func PublishResult(path string, result input.Result) error {
 	if d.Decode(&extra) != io.EOF {
 		return errors.New("invalid-publisher-config")
 	}
+	check := expected == "" && result.Metadata == nil && result.Counters.Gap == "self-check" && uuidID.MatchString(result.Counters.CheckID)
+	if (expected != "" && expected != config.CollectorID) || (config.RequireCollectorEpoch && expected == "" && !check) {
+		return errors.New("stale-collector-epoch")
+	}
+	result = enforcePublicationPolicy(config, result)
 	envelope, err := Build(config, result)
 	if err != nil {
 		return err
@@ -149,11 +157,18 @@ func PublishResult(path string, result input.Result) error {
 	if err != nil || len(encoded) > input.MaxProjectionBytes {
 		return errors.New("projection-too-large")
 	}
-	info, err = root.Lstat("inbox")
+	if config.RequireCollectorEpoch && tryBroker(config.Broker, envelope, encoded) {
+		return nil
+	}
+	inboxName := "inbox"
+	if config.RequireCollectorEpoch {
+		inboxName = filepath.Join("inbox", config.CollectorID)
+	}
+	info, err = root.Lstat(inboxName)
 	if err != nil || !info.IsDir() || !private(info) {
 		return errors.New("unsafe-spool-inbox")
 	}
-	inbox, err := root.OpenRoot("inbox")
+	inbox, err := root.OpenRoot(inboxName)
 	if err != nil {
 		return err
 	}

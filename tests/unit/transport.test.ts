@@ -45,6 +45,22 @@ test('exclusive collector syncs before acknowledgment and replay deduplicates a 
   finally {await owner.close();}
 });
 
+test('healthy watcher backs off empty scans but a publication wakes ingestion before the idle poll', async t => {
+ const {path,config}=await setup(t),owner=await SpoolIngester.open(path,config);
+ const original=owner.scan.bind(owner);let scans=0;
+ owner.scan=(afterDurable)=>{scans++;return original(afterDurable);};
+ try {
+  owner.start(50,true);
+  if(owner.counters.failures>0){t.skip('native watcher registration unavailable; polling-only behavior is covered separately');return;}
+  await new Promise(resolve=>setTimeout(resolve,400));
+  assert.ok(scans<=2,`empty watched queue performed ${scans} scans`);
+  const e=envelope(config),started=Date.now();await publish(path,e);
+  while(owner.journal.records.length===0&&Date.now()-started<750)await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(owner.journal.records.length,1);
+  assert.ok(Date.now()-started<750);
+ } finally {await owner.close();}
+});
+
 test('bounded rescans progress without watcher notifications and reject unsafe entries without reading their targets',async t=>{
   const {path,config}=await setup(t),owner=await SpoolIngester.open(path,config);
   try {

@@ -166,6 +166,10 @@
                 "type": "string",
                 "pattern": "^[0-9a-f]{64}$"
               }
+            },
+            "policyId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
             }
           }
         },
@@ -208,8 +212,21 @@
                 "identity-unavailable",
                 "projection-too-large",
                 "telemetry-panic",
-                "input-or-consumer-timeout"
+                "input-or-consumer-timeout",
+                "self-check"
               ]
+            },
+            "privacy": {
+              "type": "string",
+              "enum": [
+                "excluded-path",
+                "policy-unavailable",
+                "path-unresolved"
+              ]
+            },
+            "checkId": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
             }
           }
         }

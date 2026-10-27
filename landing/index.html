@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#080909" />
+  <meta name="description" content="Your agents move fast. Keep them in sight. Explore Overwatch, a local command center for AI coding agents." />
+  <title>Overwatch — Trust nothing. See everything.</title>
+  <link rel="icon" href="./assets/eye.svg" type="image/svg+xml" />
+  <link rel="preload" href="./assets/space-grotesk.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="./eye.js" defer></script>
+  <script src="./demo.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="masthead">
+    <a class="brand" href="#" aria-label="Overwatch home"><span class="brand-icon" aria-hidden="true">◉</span> overwatch<span class="brand-period">.</span></a>
+    <nav aria-label="Main navigation"><a href="#overview">Overview</a><a href="#control-room">Control room</a><a href="#protocol">The protocol</a></nav>
+    <a class="nav-cta" href="#control-room">Enter the demo <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="overview" aria-labelledby="headline">
+      <div class="hero-top mono"><span><i class="status-dot"></i> OBSERVATION SYSTEM / ONLINE</span><span class="hero-coordinate">SYS. 001 — LOCAL INTELLIGENCE</span></div>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="red">[</span> NOTHING GOES UNSEEN <span class="red">]</span></p>
+          <h1 id="headline">Trust nothing.<br />See <span>everything.</span></h1>
+          <p class="hero-description">Your agents move fast. Keep them in sight.<br />One command center for every action, every file,<br class="desktop-break" /> and every moment that needs you.</p>
+          <div class="hero-actions"><a class="button button-primary" href="#control-room">Take control <span aria-hidden="true">↗</span></a><a class="text-link" href="#protocol">How it works <span aria-hidden="true">↓</span></a></div>
+          <p class="hero-note mono">LOCAL FIRST. &nbsp; EYES OPEN. &nbsp; HANDS OFF.</p>
+        </div>
+        <div class="observation" aria-label="Animated surveillance eye illustration">
+          <div class="observation-grid" aria-hidden="true"></div>
+          <div class="orbit orbit-one" aria-hidden="true"></div><div class="orbit orbit-two" aria-hidden="true"></div>
+          <span class="corner corner-tl" aria-hidden="true"></span><span class="corner corner-tr" aria-hidden="true"></span><span class="corner corner-bl" aria-hidden="true"></span><span class="corner corner-br" aria-hidden="true"></span>
+          <div class="sight-label mono"><span>OPTICAL FEED — 01</span><span class="red"><i class="status-dot"></i> REC</span></div>
+          <div class="eye-stage" role="img" aria-label="An ASCII eye with a red pupil, watching and blinking"><pre class="eye" aria-hidden="true"></pre><noscript><img class="eye-fallback" src="./assets/eye.svg" alt="" /></noscript></div>
+          <div class="target-lock" aria-hidden="true"><span>+</span><span>+</span></div>
+          <div class="sight-bottom mono"><span>SUBJECT: YOUR AGENTS<br /><span class="dim">STATUS: IN SIGHT</span></span><span class="crosshair" aria-hidden="true">⊕</span><span class="right">NO BLIND SPOTS.<br /><span class="dim">OW / 37.7749 N</span></span></div>
+        </div>
+      </div>
+      <div class="hero-bottom mono"><span>BUILT FOR THE HUMAN IN COMMAND</span><a href="#control-room">SCROLL TO OBSERVE <span class="red" aria-hidden="true">↓</span></a><button class="motion-control" id="motion-toggle" aria-pressed="false">Pause visuals <span aria-hidden="true">Ⅱ</span></button></div>
+    </section>
+
+    <div class="signal-strip" aria-label="Product principles"><span><span class="red">✳</span> EVERY AGENT. ONE VIEW.</span><span><span class="red">✳</span> NO UNSEEN CHANGES.</span><span><span class="red">✳</span> YOUR MACHINE. YOUR CONTROL.</span><span><span class="red">✳</span> STAY IN THE LOOP.</span></div>
+
+    <section class="section control-section" id="control-room" aria-labelledby="control-title">
+      <div class="section-heading"><div><p class="eyebrow red">01 / THE CONTROL ROOM</p><h2 id="control-title">Nothing slips<br />under the radar.</h2></div><p>A little oversight goes a long way.<br />Explore a simulated workspace. Pick an agent,<br class="desktop-break" /> inspect its activity, and handle the unexpected.</p></div>
+      <div class="console">
+        <div class="console-header"><div class="console-title"><span class="red" aria-hidden="true">⊕</span> COMMAND CENTER <span class="demo-badge">DEMO</span></div><div class="console-tools"><span class="workspace mono">~/projects/next-big-thing</span><button id="feed-toggle" class="small-button" aria-pressed="false">Pause feed <span aria-hidden="true">Ⅱ</span></button></div></div>
+        <div class="console-body">
+          <aside class="agent-sidebar" aria-label="Filter by agent">
+            <div class="sidebar-title mono">AGENTS <span>03</span></div>
+            <button class="agent selected" data-agent="all" aria-pressed="true"><span class="agent-icon all-icon" aria-hidden="true">⌘</span><span><strong>All agents</strong><small>Full visibility</small></span><span class="agent-count">3</span></button>
+            <button class="agent" data-agent="atlas" aria-pressed="false"><span class="agent-icon" aria-hidden="true">A</span><span><strong>Atlas <small class="agent-model">Claude</small></strong><small><i class="tiny-dot"></i> Building authentication</small></span></button>
+            <button class="agent" data-agent="echo" aria-pressed="false"><span class="agent-icon" aria-hidden="true">E</span><span><strong>Echo <small class="agent-model">Codex</small></strong><small><i class="tiny-dot"></i> Refining the interface</small></span></button>
+            <button class="agent" data-agent="ghost" aria-pressed="false"><span class="agent-icon" aria-hidden="true">G</span><span><strong>Ghost <small class="agent-model">Cursor</small></strong><small><i class="tiny-dot idle"></i> Reviewing changes</small></span></button>
+            <div class="sidebar-bottom mono"><span><i class="status-dot"></i> <span id="feed-state">FEED ACTIVE</span></span><span class="dim">SYNTHETIC DATA / LOCAL DEMO</span></div>
+          </aside>
+          <div class="monitor">
+            <div class="monitor-summary"><div><span class="mono dim">WORKSPACE OVERVIEW</span><h3 id="monitor-title">All eyes on your code.</h3></div><div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="metrics"><div><span class="mono">AGENTS IN SIGHT</span><strong id="agent-total">03 <small>connected</small></strong></div><div><span class="mono">FILES TOUCHED</span><strong id="file-total">06 <small>this session</small></strong></div><div><span class="mono">NEEDS YOUR EYES</span><strong class="red" id="attention-total">01 <small>file overlap</small></strong></div></div>
+            <div class="tabs" role="tablist" aria-label="Workspace views"><button id="tab-activity" role="tab" aria-selected="true" aria-controls="panel-activity" data-tab="activity">Live activity <span class="tab-dot"></span></button><button id="tab-files" role="tab" aria-selected="false" aria-controls="panel-files" tabindex="-1" data-tab="files">File map</button><button id="tab-attention" role="tab" aria-selected="false" aria-controls="panel-attention" tabindex="-1" data-tab="attention">Attention <span id="attention-badge">1</span></button></div>
+            <div id="panel-activity" class="tab-panel" role="tabpanel" aria-labelledby="tab-activity" tabindex="0"><div class="event-heading mono"><span>AGENT / ACTION</span><span>FILE</span><span>TIME</span></div><div id="activity-list"></div></div>
+            <div id="panel-files" class="tab-panel" role="tabpanel" aria-labelledby="tab-files" tabindex="0" hidden><div class="event-heading mono"><span>TRACKED FILE</span><span>OWNER</span><span>STATE</span></div><div id="file-list"></div></div>
+            <div id="panel-attention" class="tab-panel attention-panel" role="tabpanel" aria-labelledby="tab-attention" tabindex="0" hidden><div id="attention-content"></div></div>
+            <div class="console-footer mono"><span><span class="red">↳</span> <span id="view-description">Every action leaves a trace.</span></span><button id="reset-demo">Reset simulation ↺</button></div>
+          </div>
+        </div>
+      </div>
+      <p class="demo-caption mono"><span>INTERACTIVE PREVIEW — ALL ACTIVITY IS SIMULATED.</span><span>NO INSTALL. NO CONNECTION. JUST A LOOK INSIDE.</span></p>
+      <noscript><p class="no-script">Enable JavaScript to explore the interactive demo. This preview uses fictional agents and files.</p></noscript>
+    </section>
+
+    <section class="section capabilities" aria-labelledby="capabilities-title"><div class="section-heading"><div><p class="eyebrow red">02 / SITUATIONAL AWARENESS</p><h2 id="capabilities-title">A healthy amount<br />of paranoia.</h2></div><p>Let your agents do the work.<br />Keep the whole picture for yourself.</p></div>
+      <div class="feature-grid">
+        <article class="feature"><div class="feature-art radar-art" aria-hidden="true"><div class="radar"><div class="radar-sweep"></div><i></i><i></i><i></i><span>+</span></div><span class="art-label mono">SCANNING ALL SECTORS</span></div><div class="feature-title"><span class="mono red">[01]</span><h3>Eyes on every agent.</h3></div><p>Follow parallel work in one place. Know who’s active, what they’re touching, and where they’re headed.</p></article>
+        <article class="feature"><div class="feature-art trace-art mono" aria-hidden="true"><div><span class="dim">09:41:02</span> <span class="red">+</span> src/auth.ts <span>ATLAS</span></div><div><span class="dim">09:41:04</span> <span class="red">~</span> app/page.tsx <span>ECHO</span></div><div class="trace-highlight"><span class="dim">09:41:06</span> <span class="red">!</span> src/auth.ts <span>GHOST</span></div><div><span class="dim">09:41:08</span> <span class="red">✓</span> tests/auth.ts <span>ATLAS</span></div><span class="art-label mono">A TRAIL. NOT A BLACK BOX.</span></div><div class="feature-title"><span class="mono red">[02]</span><h3>Every move, accounted for.</h3></div><p>Turn a blur of edits into a readable timeline. Follow the file trail without chasing down every conversation.</p></article>
+        <article class="feature"><div class="feature-art overlap-art" aria-hidden="true"><div class="overlap-circle">A</div><div class="overlap-circle">G</div><span class="overlap-alert">!</span><span class="art-label mono">COLLISION DETECTED</span></div><div class="feature-title"><span class="mono red">[03]</span><h3>Catch the crossfire.</h3></div><p>Two agents. One file. See where work overlaps and decide what deserves your attention before it gets messy.</p></article>
+      </div>
+    </section>
+
+    <section class="section protocol" id="protocol" aria-labelledby="protocol-title"><div class="protocol-intro"><p class="eyebrow red">03 / THE PROTOCOL</p><h2 id="protocol-title">Sinister aesthetic.<br />Sensible boundaries.</h2><p>The watchtower belongs to you.<br />Here’s what this preview actually does.</p><div class="protocol-seal mono"><span aria-hidden="true">⊕</span> YOUR MACHINE.<br />YOUR JURISDICTION.</div></div><div class="faq"><details open><summary><span class="mono red">01</span> Is this watching my computer?<span class="faq-toggle" aria-hidden="true">+</span></summary><p>No. This website runs a fictional workspace simulation in your browser. It doesn’t read your files, connect to your coding agents, or request device permissions.</p></details><details><summary><span class="mono red">02</span> What can I try in the demo?<span class="faq-toggle" aria-hidden="true">+</span></summary><p>Select an agent to filter the workspace, explore the file map, and inspect a simulated file overlap under Attention. Acknowledge it, pause the activity feed, or reset the simulation to start again.</p></details><details><summary><span class="mono red">03</span> Can I use the real Overwatch?<span class="faq-toggle" aria-hidden="true">+</span></summary><p>Overwatch is in development. The repository contains the local integration work and setup documentation. <a href="https://github.com/Angadslr/Overwatch" target="_blank" rel="noopener noreferrer">Follow the project on GitHub ↗</a> for its current status.</p></details><details><summary><span class="mono red">04</span> Where does the demo data go?<span class="faq-toggle" aria-hidden="true">+</span></summary><p>Nowhere. The sample events live in this page’s memory and reset when you reload. This page has no analytics, account creation, or backend connection, and its font is hosted locally.</p></details></div></section>
+
+    <section class="closing" aria-labelledby="closing-title"><p class="eyebrow">YOUR AGENTS ARE ALREADY MOVING.</p><h2 id="closing-title">Someone has to <span>watch.</span></h2><a class="button button-primary" href="#control-room">Assume control <span aria-hidden="true">↗</span></a><span class="closing-watermark" aria-hidden="true">OVERWATCH</span></section>
+  </main>
+  <footer><a class="brand" href="#">overwatch<span class="brand-period">.</span></a><span class="mono">LOCAL. QUIET. WATCHING.</span><div><span class="mono">© <span id="year">2026</span> OVERWATCH</span><a href="https://github.com/Angadslr/Overwatch" target="_blank" rel="noopener noreferrer">Source code ↗</a></div></footer>
+  <div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+</body>
+</html>

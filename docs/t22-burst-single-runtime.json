@@ -1,0 +1,54 @@
+{
+  "recordedAt": "2026-10-26T21:12:48.268Z",
+  "nativeDelivery": false,
+  "ui": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "collectorGenerationRequired": true,
+  "consumerEnabledDuringPublication": false,
+  "producerGomaxprocs": "1",
+  "producer": {
+    "type": "complete",
+    "stage": "burst",
+    "attempts": 2000,
+    "errors": 0,
+    "responseP50Ms": 32.247333,
+    "responseP95Ms": 908.032791,
+    "closedP50Ms": 1541.968958,
+    "closedP95Ms": 2626.011166,
+    "closedMaxMs": 2959.513917,
+    "elapsedMs": 11535.438084
+  },
+  "targetPerSecond": 200,
+  "targetSeconds": 10,
+  "accepted": 1041,
+  "complete": false,
+  "publicationElapsedMs": 11560.036166,
+  "drainCompletedMs": 18550.898791,
+  "pendingAfterProducers": 1041,
+  "pendingFiles": 46,
+  "inboxBytes": 38152,
+  "producerFailure": {
+    "category": "deadline-exceeded",
+    "recordedAt": "2026-10-26T21:12:34.179Z"
+  },
+  "counters": {
+    "accepted": 1041,
+    "duplicates": 0,
+    "rejected": 0,
+    "failures": 0,
+    "schemaRejected": 0,
+    "scopeRejected": 0,
+    "policyRejected": 0,
+    "expired": 0
+  },
+  "collectorCpuMs": 2938.079,
+  "collectorIncrementalRssBytes": 4145152,
+  "limitations": [
+    "Synthetic inputs from a separate producer process; this is not native Agent delivery.",
+    "Resource counters cover the collector process, excluding producer and helper children.",
+    "Consumer-off publishes first, then drains; it isolates producer behavior rather than measuring live view latency."
+  ]
+}

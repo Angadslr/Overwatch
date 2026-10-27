@@ -46,29 +46,12 @@ test('every configured event responds once, including malformed JSON and absent 
   assert.deepEqual(await readdir(join(fixture.storage, 'inbox')), []);
 });
 
-test('concurrent processes publish distinct complete content-free events, with literal launcher paths', async t => {
+test('retired discovery launcher responds concurrently without persisting paths or content', async t => {
   const fixture = await setup(t);
-  const quotedDirectory = join(fixture.root, "Angad's $(literal) helper");
-  await mkdir(quotedDirectory);
-  const quotedHelper = join(quotedDirectory, 'probe.cjs');
-  await cp(helper, quotedHelper);
-  const input = { workspace_roots: [fixture.root], hook_event_name: 'beforeReadFile', conversation_id: 'fixture-a', generation_id: 'fixture-turn', file_path: join(fixture.root, 'read.txt'), content: 'FORBIDDEN_FILE_CONTENT', prompt: 'FORBIDDEN_PROMPT', tool_input: { command: 'FORBIDDEN_COMMAND' }, tool_output: 'FORBIDDEN_OUTPUT', user_email: 'FORBIDDEN_EMAIL', reasoning: 'FORBIDDEN_REASONING' };
-  const results = await Promise.all(Array.from({ length: 16 }, () => invoke(fixture, 'beforeReadFile', input, quotedHelper)));
+  const input = { workspace_roots: [fixture.root], hook_event_name: 'beforeReadFile', file_path: join(fixture.root, 'read.txt'), content: 'FORBIDDEN_FILE_CONTENT' };
+  const results = await Promise.all(Array.from({ length: 16 }, () => invoke(fixture, 'beforeReadFile', input)));
   assert.ok(results.every(result => result.code === 0 && result.stdout === '{"permission":"allow"}\n' && result.stderr === ''));
-  const files = await readdir(join(fixture.storage, 'inbox'));
-  assert.equal(files.length, 16);
-  const keys = new Set();
-  for (const name of files) {
-    assert.match(name, /^[0-9a-f-]{36}\.json$/);
-    const bytes = await readFile(join(fixture.storage, 'inbox', name), 'utf8');
-    assert.equal(bytes.includes('FORBIDDEN'), false);
-    assert.equal(bytes.includes(fixture.root), false);
-    const event = JSON.parse(bytes);
-    keys.add(event.eventId);
-    assert.equal(event.target, 'read.txt');
-    assert.equal(event.workingDirectoryMatchesRoot, true);
-  }
-  assert.equal(keys.size, 16);
+  assert.deepEqual(await readdir(join(fixture.storage, 'inbox')), []);
 });
 
 test('oversized inputs and full inbox preserve response without publishing', async t => {

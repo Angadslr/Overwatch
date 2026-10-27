@@ -1,0 +1,28 @@
+{
+  "recordedAt": "2026-10-26T15:50:40.097Z",
+  "passed": true,
+  "editor": "Cursor 3.26.16",
+  "platform": "macOS arm64",
+  "fixture": ".local/t22-native failure fixture",
+  "method": "Native Cursor UI; one ordinary native Agent read of invented content while the cloned extension helper was unavailable.",
+  "checks": [
+    "Owned hook configuration contained the response-first shell wrapper.",
+    "Only the copied development helper was renamed out of place after enable.",
+    "Native transcript showed Read read.txt L1-2 and T22 missing helper read complete, worked for 2s.",
+    "Supervision remained awaiting-first-event with zero matching events.",
+    "Explicit Helper and Collector Self-check reported launch-failed.",
+    "Copied helper was restored."
+  ],
+  "journalSegments": 0,
+  "limitations": [
+    "This is a missing-executable failure smoke, not a comparative latency measurement or a complete qualification of every OS/runtime failure.",
+    "Burst throughput and near-cap memory targets remain separate open T22 findings."
+  ],
+  "cleanup": {
+    "publisherEnabled": false,
+    "hooksPresent": false,
+    "leasePresent": false,
+    "inboxFiles": 0,
+    "manualWindowClosed": true
+  }
+}

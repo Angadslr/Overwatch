@@ -1,0 +1,118 @@
+{
+  "recordedAt": "2026-10-27T03:04:30.737Z",
+  "scope": "production broker, proof-race cleanup and index-first cold replay; resource budgets remain open",
+  "nativeAgentDelivery": false,
+  "checks": {
+    "typesAndContracts": true,
+    "build": true,
+    "unit": {
+      "passed": 183,
+      "failed": 0,
+      "skipped": 0
+    },
+    "process": {
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0
+    },
+    "go": {
+      "tests": true,
+      "race": true,
+      "vet": true,
+      "acknowledgmentCases": 7
+    },
+    "installedEditor": {
+      "passed": true,
+      "checks": 40,
+      "editorApiVersion": "1.128.0",
+      "node": "24.19.0"
+    },
+    "brokerFocused": {
+      "unitPassed": 11,
+      "processPassed": 7
+    }
+  },
+  "performanceEvidence": [
+    "docs/t22-production-broker-burst.json",
+    "docs/t22-production-broker-editor-performance.json",
+    "docs/t22-broker-history-window.json",
+    "docs/t22-history-index-first.json"
+  ],
+  "limitations": [
+    "The first installed regression failed in local observations; two later regression runs passed. The original failure remains unexplained.",
+    "Required independent acceptance cases and untested fault interleavings are listed in docs/INDEPENDENT-TEST-PLAN.md.",
+    "CPU/memory and burst helper p95 exceed unchanged targets; T22/G3/T24 remain open.",
+    "Installed broker load evidence predates index-first cold replay. Latest installed regression and near-cap measurement cover index-first replay.",
+    "The profiled pre-change near-cap completion duration includes snapshot overhead; memory samples precede that snapshot."
+  ],
+  "cleanup": [
+    {
+      "run": "t22-broker-regression",
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    },
+    {
+      "run": "t22-broker-regression2",
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    },
+    {
+      "run": "t22-broker-final",
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    },
+    {
+      "run": "t22-broker-performance",
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    },
+    {
+      "run": "t22-index-first-final",
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    },
+    {
+      "run": "t22-proof-final",
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    }
+  ],
+  "sha256": {
+    "dist/extension.cjs": "35b2065d89d102db72bd53ee3c055f62b6cfe4befd341868d8b44907d082fc20",
+    "dist/cursor-supervision-hook": "9472e92d69cac2c87e03e6d50c2d5174e717f6cef6ef1e70178e75ecc0e6acf4",
+    "dist/transport.cjs": "e19ac223efeb5a09e290f5df5512d83fe6d7e083c7f6522a909978c53633fcb4",
+    "src/transport/localBroker.ts": "4c939e14272bb69e8cbefa3bda6b4f89e0c4f2aab513ee08002d21ab52bd9539",
+    "helper/internal/spool/broker.go": "2c5fee3bd1a7c1d8f613e6c1a79f51238b40d3da3ab64e758216885204eb4a4f",
+    "docs/INDEPENDENT-TEST-PLAN.md": "18eb25bf1c4268bb6ade08f54376a983252bd2382fb35475701a79914aab0cff",
+    "src/transport/journal.ts": "c8d2db992de4f334e316abef6336da7913ef6c8d9fa57f7af61f4dd2b12b8c6c",
+    "scripts/measure-history-reader.mjs": "9a07895d671646c5c8ecb944348d4cbf3677a2804b22bef512ede04044ad2e56",
+    "tests/unit/local-broker.test.ts": "e97b84072f2ec2b5764f819fafa49c9f76ef78236a0595c2af46130e14a434bb",
+    "tests/integration/broker.test.mjs": "8a614771112688990fe61423d714d82733fc2fb2465fb21306107366fc3eb31d",
+    "helper/internal/spool/broker_test.go": "a7f285420399f1a5e1d881bc8e29762aebab8397f7fadd937d4d0410d4134dbe"
+  },
+  "latestInstalledRun": "t22-proof-final"
+}

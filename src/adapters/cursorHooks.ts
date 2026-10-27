@@ -28,25 +28,29 @@ export function normalizeCursorEnvelope(input: SourceEnvelopeV1): CursorObservat
   const source = parseSource(Buffer.from(JSON.stringify(input)));
   if (!source)
     return undefined;
-  const m = source.result.metadata;
+  const measured = source.result.metadata;
+  const selfCheck = !measured && source.result.counters.gap === 'self-check' && source.result.counters.checkId !== undefined;
+  const m = source.result.counters.privacy ? undefined : measured;
+  if (measured && (measured.sourceVersion !== '3.26.16' || measured.sourceEvent === 'sessionEnd')) return undefined;
   if (m && (m.sourceVersion !== '3.26.16' || m.sourceEvent === 'sessionEnd'))
     return undefined;
   const op = m ? operation(m) : 'unknown';
   const hook = m?.sourceEvent;
   const limitations: Evidence['limitations'] = m
     ? ['model-use-not-established', 'child-identity-not-established', 'persistence-not-established', 'acceptance-not-established', 'source-session-unlinked']
-    : ['transport-gap'];
+    : selfCheck ? ['source-coverage-partial'] : ['transport-gap'];
   if (m && (source.result.counters.invalidFields > 0 || source.result.counters.gap))
     limitations.push('source-coverage-partial');
   const call = hook === 'afterFileEdit' ? undefined : m?.callId;
   const scopedCall = call && m?.conversationId && m.generationId && op !== 'unknown' && op !== 'lifecycle';
   const event: EventV1 = {
     schemaVersion: 1, eventId: source.eventId, collectorId: source.collectorId,
-    source: m ? 'cursor-hook' : 'self-check', sourceEvent: m ? m.sourceEvent : 'transportGap', receivedAt: source.receivedAt,
+    source: m ? 'cursor-hook' : 'self-check', sourceEvent: m ? m.sourceEvent : selfCheck ? 'selfCheck' : 'transportGap', receivedAt: source.receivedAt,
     environmentId: source.environmentId, workspaceId: source.workspaceId,
     actorScope: 'unknown', operationId: source.eventId, operation: op, phase: 'observed', outcome: 'unknown', targets: [],
     evidence: { activity: m ? 'source-reported' : 'self-check', attribution: 'unknown', completion: 'not-observed', diskPersistence: 'not-observed', correlation: call ? (scopedCall ? 'source-call-id' : 'ambiguous') : 'unpaired', limitations },
   };
+  if (selfCheck) event.operationId = source.result.counters.checkId!;
   if (source.worktreeId !== undefined)
     event.worktreeId = source.worktreeId;
   if (m?.sourceVersion !== undefined)

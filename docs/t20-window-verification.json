@@ -1,0 +1,38 @@
+{
+  "recordedAt": "2026-10-26T06:27:37.187Z",
+  "passed": true,
+  "nativeDelivery": false,
+  "fixture": "/Users/angadsrivastava/Documents/Overwatch/.local/t20-windows-ee6ed99c/fixture with spaces",
+  "results": [
+    {
+      "phase": "owner",
+      "passed": true,
+      "nativeDelivery": false,
+      "editorApiVersion": "1.128.0",
+      "node": "24.19.0",
+      "checks": [
+        "primary Cursor window keeps its single collector while another window enables and closes"
+      ]
+    },
+    {
+      "phase": "passive",
+      "passed": true,
+      "nativeDelivery": false,
+      "editorApiVersion": "1.128.0",
+      "node": "24.19.0",
+      "checks": [
+        "second installed Cursor window is diagnosed as passive and cannot stop or duplicate the owning pipeline"
+      ]
+    },
+    {
+      "phase": "restart",
+      "passed": true,
+      "nativeDelivery": false,
+      "editorApiVersion": "1.128.0",
+      "node": "24.19.0",
+      "checks": [
+        "same Cursor test profile re-enables after host restart; test-mode mementos reset, so persistent-choice resume requires the separate normal-window check"
+      ]
+    }
+  ]
+}

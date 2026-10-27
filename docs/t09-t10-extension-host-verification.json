@@ -1,0 +1,20 @@
+{
+  "suite": "T09/T10 real Cursor extension host regression",
+  "nativeDelivery": false,
+  "editorApiVersion": "1.128.0",
+  "extensionHostNode": "24.19.0",
+  "startedAt": "2026-10-23T23:04:18.382Z",
+  "finishedAt": "2026-10-23T23:04:19.525Z",
+  "passed": true,
+  "checks": [
+    "trusted owned collection enabled",
+    "real TreeItems contain relative paths identity evidence and age",
+    "native session TreeItems use scoped aliases stable across turn and state restore",
+    "proven child lifecycle renders beneath its parent without assigning file ownership",
+    "selection opens intended current fixture file",
+    "missing current file is reported accurately",
+    "content markers absent from extension projection",
+    "disable removes owned hook config and stops publishing",
+    "cached command remains observational and cannot publish after disable"
+  ]
+}

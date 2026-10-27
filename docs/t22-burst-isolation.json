@@ -1,0 +1,22 @@
+{
+  "recordedAt": "2026-10-26T21:10:21.887Z",
+  "nativeDelivery": false,
+  "ui": false,
+  "attempts": 2000,
+  "accepted": 1096,
+  "elapsedMs": 26509.418875,
+  "responseP95Ms": 550.7875409999997,
+  "closedP95Ms": 2135.151250000001,
+  "closedMaxMs": 2573.3806250000007,
+  "errors": 0,
+  "counters": {
+    "accepted": 1096,
+    "duplicates": 0,
+    "rejected": 0,
+    "failures": 1,
+    "schemaRejected": 0,
+    "scopeRejected": 0,
+    "policyRejected": 0,
+    "expired": 0
+  }
+}

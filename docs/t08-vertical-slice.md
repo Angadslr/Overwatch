@@ -1,6 +1,6 @@
 # T08 native file-supervision slice
 
-Implemented and verified for Angad on 22 October 2026. T08 and G1 are complete in development mode on Cursor 3.26.16, editor API 1.128.0, extension-host Node 24.19.0, macOS 26.5.2 arm64. T09 has not started.
+Implemented and verified for Angad on 22 October 2026. T08 and G1 are complete in development mode on Cursor 3.26.16, editor API 1.128.0, extension-host Node 24.19.0, macOS 26.5.2 arm64. This is the historical T08 verification record; T09/T10 were subsequently completed on 23 October. See [identity/path implementation](identity-and-paths.md) for the current scope.
 
 ## Run and boundaries
 

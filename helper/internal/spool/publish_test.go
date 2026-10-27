@@ -136,3 +136,39 @@ func TestBoundsAndSubstitution(t *testing.T) {
 		t.Fatal("full spool accepted")
 	}
 }
+func TestFailureMarkerIsPrivateBoundedAndDisabledSafe(t *testing.T) {
+	path, _ := setup(t)
+	RecordFailure(path, "publication-failed")
+	name := filepath.Join(path, "producer-loss.json")
+	first, err := os.ReadFile(name)
+	if err != nil || len(first) > 256 || !bytes.Contains(first, []byte("publication-failed")) {
+		t.Fatal("loss marker missing")
+	}
+	info, err := os.Stat(name)
+	if err != nil || info.Mode().Perm() != 0600 {
+		t.Fatal("loss marker not private")
+	}
+	RecordFailure(path, "deadline-exceeded")
+	second, _ := os.ReadFile(name)
+	if !bytes.Equal(first, second) {
+		t.Fatal("loss marker was replaced")
+	}
+	if err := os.Remove(name); err != nil {
+		t.Fatal(err)
+	}
+	configName := filepath.Join(path, "publisher.json")
+	data, _ := os.ReadFile(configName)
+	var config Config
+	if json.Unmarshal(data, &config) != nil {
+		t.Fatal("invalid fixture config")
+	}
+	config.Enabled = false
+	data, _ = json.Marshal(config)
+	if os.WriteFile(configName, data, 0600) != nil {
+		t.Fatal("fixture config write failed")
+	}
+	RecordFailure(path, "publication-failed")
+	if _, err := os.Stat(name); !os.IsNotExist(err) {
+		t.Fatal("disabled cached hook persisted a marker")
+	}
+}

@@ -1,0 +1,39 @@
+import type { HealthSnapshot } from './health';
+export interface SelfCheckStatus { state: 'not-run' | 'running' | 'passed' | 'unsupported' | 'collector-off' | 'launch-failed' | 'response-invalid' | 'delivery-timeout'; checkedAt?: string; durationMs?: number }
+export interface ReadinessInput {
+  registered: boolean; owner: boolean; supported: boolean; health: HealthSnapshot; check: SelfCheckStatus;
+  counters: { accepted: number; rejected: number; failures: number; schemaRejected?: number; scopeRejected?: number; policyRejected?: number };
+  queue?: { sampledAt: string; readyFiles: number; oldestObservedAgeMs: number; incomplete: boolean };
+  recoveredTail: boolean;
+  history?: { firstSequence: number; nextSequence: number; retainedRecords: number; bufferedRecords?: number; bufferedFirstSequence?: number; bytes: number; retiredIdentities: number; expiredBefore: string };
+  checkpoint?: string;
+  storageFailure?: string;
+  replayDurationMs?: number;
+  ownership?: 'unowned' | 'owned' | 'other-window' | 'recoverable' | 'uncertain';
+  producerFailure?: {category:'publication-failed'|'deadline-exceeded'|'uncertain';recordedAt?:string};
+}
+export interface ReadinessIssue { code: string; message: string; action: string }
+export function readinessIssues(input: ReadinessInput): ReadinessIssue[] {
+  const issues: ReadinessIssue[] = [];
+  if(input.producerFailure)issues.push({code:'producer-telemetry-loss',message:`A helper reported unavailable telemetry (${input.producerFailure.category}); lost event count is unknown.`,action:'Review queue/storage pressure and the measured resource limits. A response can succeed while telemetry is lost. The bounded marker persists until explicit scoped history reset; it is not an agent failure or a native completion claim.'});
+  if(input.ownership==='other-window')issues.push({code:'other-window-owner',message:'Another window owns this checkout; this window remains passive.',action:'Use the owning window for collection. Closing a passive window does not stop the owner. One active supervision window per physical checkout is supported.'});
+  if(input.ownership==='uncertain')issues.push({code:'ownership-uncertain',message:'Collector ownership cannot be safely established.',action:'Inspect the private lease and local process. Active, inaccessible, reused-PID or malformed ownership is never stolen or removed.'});
+  if (input.storageFailure==='pending-history-reset') issues.push({code:'history-reset-incomplete',message:'A reviewed history reset was interrupted; collection remains off.',action:'Complete the reviewed scoped history reset before enabling. Do not remove the intent marker to replay partially cleared history.'});
+  else if (input.storageFailure) issues.push({ code: 'history-integrity', message: `History integrity check stopped collection (${input.storageFailure}).`, action: 'Preserve the owned history for reviewed diagnostics. Restore a known-good backup or use explicit scoped history reset; do not silently skip complete/middle corruption or mutate native conversations.' });
+  if (!input.supported) issues.push({ code: 'unsupported-environment', message: 'Collection requires the qualified trusted local fixture environment.', action: 'Open a trusted local macOS arm64 invented fixture. Remote/virtual workspaces remain unsupported.' });
+  else if (!input.registered || !input.owner) issues.push({ code: 'collection-off', message: 'Owned integration/collector is not active.', action: 'Enable collection explicitly. Preserve foreign hooks and inspect ownership if enable fails.' });
+  if (input.check.state === 'launch-failed' || input.check.state === 'response-invalid') issues.push({ code: 'helper-check-failed', message: 'The helper did not launch or return its expected observation response.', action: 'Rebuild the extension-owned helper and verify its executable mode. Do not substitute a workspace-defined command.' });
+  if (input.check.state === 'delivery-timeout') issues.push({ code: 'delivery-check-failed', message: 'The helper responded, but its self-check record was not observed in the collector.', action: 'Inspect publisher state, private storage/inbox permissions, storage capacity and collector ownership. No source failure outcome is inferred.' });
+  if (input.health.transport === 'disconnected') issues.push({ code: 'collector-disconnected', message: 'Collector ownership/configuration is uncertain; live state is unknown.', action: 'Disable the owned integration and inspect ownership before re-enabling. Do not remove another live collector lease.' });
+  if (input.counters.schemaRejected) issues.push({ code: 'schema-rejections', message: `${input.counters.schemaRejected} source records failed strict validation.`, action: 'Check the helper/extension protocol versions; raw rejected payloads are deliberately omitted.' });
+  if (input.counters.scopeRejected) issues.push({ code: 'scope-rejections', message: `${input.counters.scopeRejected} records were outside the enabled source scope/profile.`, action: 'Use the qualified Cursor build and enabled physical fixture root; do not broaden routing to unrelated projects.' });
+  if (input.counters.policyRejected || input.health.privacy.policyUnavailable) issues.push({ code: 'privacy-policy-gap', message: 'Path collection was reduced by missing/stale privacy policy or rejected hints.', action: 'Disable and explicitly re-enable to compile the current policy; inspect exclusion settings. Do not bypass the policy.' });
+  if (input.health.privacy.excluded || input.health.privacy.unresolved) issues.push({ code: 'excluded-or-unresolved', message: 'Excluded/unsafe paths are intentionally omitted.', action: 'Review configured exclusions and path safety. An exclusion is distinct from upstream absence.' });
+  if (input.counters.failures) issues.push({ code: 'transport-failures', message: `${input.counters.failures} bounded transport operations failed.`, action: 'Inspect private storage capacity, filesystem integrity and ownership; collection may have gaps.' });
+  if (input.queue && (input.queue.oldestObservedAgeMs > 5000 || input.queue.incomplete)) issues.push({ code: 'queue-backlog', message: `Observed at least ${input.queue.readyFiles} ready records; oldest sampled age ${Math.floor(input.queue.oldestObservedAgeMs / 1000)}s.`, action: 'Keep the collector enabled and inspect ingestion/storage errors. Queue sampling is bounded; this is not a complete backlog count.' });
+  if (input.recoveredTail) issues.push({ code: 'recovered-torn-tail', message: 'A final unterminated journal tail was truncated during recovery.', action: 'Review the disclosed history gap. Complete/middle corruption is not silently repaired.' });
+  if (input.history && input.history.firstSequence > 1) issues.push({ code: 'history-pruned', message: `Retained history begins at sequence ${input.history.firstSequence}; older complete segments were pruned.`, action: 'Source history is bounded by age/size/count. Pruned data is not reconstructed from today’s filesystem; recent retired identities are only deduplication metadata.' });
+  if (input.history?.bufferedRecords !== undefined && input.history.bufferedRecords < input.history.retainedRecords) issues.push({code:'history-windowed',message:`Recent projection holds ${input.history.bufferedRecords} of ${input.history.retainedRecords} retained source records, beginning at sequence ${input.history.bufferedFirstSequence}.`,action:'Older records remain in the local journal and can be read through bounded history pages. They are outside current view/export counts; no older activity or actor is inferred.'});
+  if (input.health.sourceGapEvents) issues.push({ code: 'source-gaps', message: `${input.health.sourceGapEvents} source/diagnostic gaps observed.`, action: 'Use safe diagnostics to distinguish projection/storage/privacy gaps; missing data does not mean an agent stopped.' });
+  return issues;
+}

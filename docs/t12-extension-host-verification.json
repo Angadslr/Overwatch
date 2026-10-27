@@ -1,0 +1,32 @@
+{
+  "suite": "T12 real Cursor disk and buffer observation verification",
+  "nativeDelivery": false,
+  "editorApiVersion": "1.128.0",
+  "extensionHostNode": "24.19.0",
+  "startedAt": "2026-10-25T00:57:04.925Z",
+  "finishedAt": "2026-10-25T00:57:09.130Z",
+  "passed": true,
+  "checks": [
+    "trusted owned collection enabled",
+    "collector readiness awaits a fresh source event instead of verifying native delivery",
+    "opening an editor resource creates neither an agent read nor a buffer-change claim",
+    "unsaved buffer edits, editor saves and disk notifications remain distinct facts",
+    "formatter edits and independent disk rewrites keep unknown actor without recent-agent attribution",
+    "create/delete bursts produce qualified notifications and disclose partial watcher coverage",
+    "excluded disk/buffer paths and invented content markers never enter observation metadata",
+    "local observation TreeItems open the current file without proving native delivery",
+    "fresh source delivery remains separate from partial source coverage",
+    "real TreeItems contain relative paths identity evidence and age",
+    "native session TreeItems use scoped aliases stable across turn and state restore",
+    "proven child lifecycle renders beneath its parent without assigning file ownership",
+    "completed generation stays terminal while its available conversation accepts another turn",
+    "selection opens intended current fixture file",
+    "missing current file is reported accurately",
+    "content markers absent from extension projection",
+    "disable removes owned hook config and stops publishing",
+    "cached command remains observational and cannot publish after disable",
+    "replayed open operations render live-unknown and history cannot verify fresh delivery",
+    "fresh matching completion resolves a replayed request without changing the earlier turn",
+    "disable disposes disk and buffer subscriptions and stops further observation delivery"
+  ]
+}

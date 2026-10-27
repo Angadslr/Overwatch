@@ -10,16 +10,17 @@ ajv.addFormat('overwatch-utc', { type: 'string', validate: (s: string) => {
     return Number.isFinite(t) && new Date(t).toISOString() === s;
   } });
 const validate = ajv.compile<SourceEnvelopeV1>(schema);
+export function validateSource(value: unknown): SourceEnvelopeV1 | undefined {
+  if (!validate(value)) return undefined;
+  if (value.result.metadata && (value.eventId !== value.result.metadata.eventId || value.receivedAt !== value.result.metadata.receivedAt)) return undefined;
+  return value;
+}
 export function parseSource(bytes: Uint8Array): SourceEnvelopeV1 | undefined {
   if (bytes.byteLength > MAX_SOURCE_BYTES)
     return undefined;
   try {
     const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
-    if (!validate(value))
-      return undefined;
-    if (value.result.metadata && (value.eventId !== value.result.metadata.eventId || value.receivedAt !== value.result.metadata.receivedAt))
-      return undefined;
-    return value;
+    return validateSource(value);
   }
   catch {
     return undefined;

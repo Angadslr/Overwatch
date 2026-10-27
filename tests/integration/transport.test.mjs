@@ -58,6 +58,20 @@ test('collector SIGKILL after sync before acknowledgment recovers without a seco
   try{assert.equal(owner.journal.records.length,1);assert.equal((await owner.scan()).length,0);assert.equal(owner.counters.duplicates,1);assert.deepEqual(await readdir(join(path,'inbox')),[]);}finally{await owner.close();}
 });
 
+test('a durable batch survives collector SIGKILL before client acknowledgment and spool retries append no second effect',async t=>{
+ const {path,config}=await setup(t);
+ for(let i=0;i<8;i++)response(await invoke(path));
+ const names=await readdir(join(path,'inbox')),events=await Promise.all(names.map(async name=>JSON.parse(await readFile(join(path,'inbox',name),'utf8'))));
+ const script=`const {SpoolIngester}=require(process.argv[1]);setInterval(()=>{},1000);(async()=>{const owner=await SpoolIngester.open(process.argv[2],JSON.parse(process.argv[3]));await owner.journal.appendBatch(JSON.parse(process.argv[4]));process.send('batch-durable');await new Promise(()=>{});})().catch(()=>process.exit(1));`;
+ const child=spawn(process.execPath,['-e',script,resolve('dist/transport.cjs'),path,JSON.stringify(config),JSON.stringify(events)],{stdio:['ignore','ignore','ignore','ipc']});
+ t.after(()=>{if(child.exitCode===null)child.kill('SIGKILL');});
+ const timeout=setTimeout(()=>child.kill('SIGKILL'),5000);
+ const message=await Promise.race([once(child,'message'),once(child,'exit').then(()=>{throw new Error('batch-child-exited-before-sync');})]);clearTimeout(timeout);assert.equal(message[0],'batch-durable');
+ const lease=JSON.parse(await readFile(join(path,'collector.lock'),'utf8')),exited=once(child,'exit');child.kill('SIGKILL');await exited;
+ const owner=await SpoolIngester.open(path,config,lease.token);
+ try{assert.equal(owner.journal.records.length,8);await owner.scan();assert.equal(owner.counters.duplicates,8);assert.equal(owner.journal.records.length,8);assert.equal(owner.journal.status().nextSequence,9);assert.deepEqual(await readdir(join(path,'inbox')),[]);}finally{await owner.close();}
+});
+
 test('permission, capacity, absent collector, disabled config and symlink failures preserve every hook response',async t=>{
   const {path}=await setup(t);
   const configPath=join(path,'publisher.json');const original=await readFile(configPath);
@@ -99,4 +113,76 @@ test('compiled hook pipeline replays one read journey and a separate edit report
   assert.equal(JSON.stringify(snapshot).includes('FAKE_SECRET_MARKER'),false);assert.equal(JSON.stringify(snapshot).includes(path),false);
   await owner.close();owner=await SpoolIngester.open(path,config);
   try{const replay=new FileActivityStore();for(const record of owner.journal.records)replay.apply(normalizeJournalRecord(record));assert.deepEqual(replay.snapshot(),snapshot);}finally{await owner.close();}
+});
+
+test('privacy filters excluded, mixed, symlink and exception paths before spool, journal and recovery', async t=>{
+ const {path,config}=await setup(t);
+ const owner=await SpoolIngester.open(path,config);
+ try {
+  await owner.setPrivacyPolicy(path,['edit.txt','FAKE_SECRET_EXCLUSION']);await owner.setPublisherEnabled(true);
+  const current=JSON.parse(await readFile(join(path,'publisher.json'),'utf8'));
+  const common={hook_event_name:'beforeReadFile',cursor_version:'3.26.16',workspace_roots:[path],conversation_id:'fixture-session',exception:{message:'FAKE_SECRET_EXCEPTION',stack:'FAKE_SECRET_STACK'},unknown:'FAKE_SECRET_UNKNOWN'};
+  for(const target of ['.env.FAKE_SECRET_ENV','credentials.json','FAKE_SECRET_FILE.pem','edit.txt']) response(await invoke(path,'beforeReadFile',JSON.stringify({...common,file_path:join(path,target)})));
+  response(await invoke(path,'beforeReadFile',JSON.stringify({...common,file_path:join(path,'read.txt'),tool_input:{path:join(path,'.env.FAKE_SECRET_MIXED')}})));
+  await writeFile(join(path,'secret-target'),'FAKE_SECRET_CONTENT',{mode:0o600});await symlink(join(path,'secret-target'),join(path,'read.txt'));
+  response(await invoke(path,'beforeReadFile',JSON.stringify({...common,file_path:join(path,'read.txt')})));
+  await rm(join(path,'read.txt'));
+  for(const name of await readdir(join(path,'inbox'))){const source=JSON.parse(await readFile(join(path,'inbox',name),'utf8'));assert.equal(source.result.metadata.pathHash,undefined);assert.ok(source.result.counters.privacy);}
+  await owner.scan();assert.equal(owner.journal.records.length,6);
+  assert.equal(owner.journal.records.filter(r=>r.envelope.result.counters.privacy==='path-unresolved').length,1);
+  for(const changed of [{...current,privacyVersion:2},{...current,policyId:'a'.repeat(64)},{...current,privacyVersion:undefined,policyId:undefined,allowedPathHashes:undefined}]) {
+   await writeFile(join(path,'publisher.json'),JSON.stringify(changed),{mode:0o600});
+   response(await invoke(path,'beforeReadFile',JSON.stringify({...common,file_path:join(path,'read.txt')})));
+  }
+  await writeFile(join(path,'publisher.json'),JSON.stringify(current),{mode:0o600});
+  await owner.scan();assert.equal(owner.journal.records.length,9);
+  assert.equal(owner.journal.records.slice(-3).every(r=>r.envelope.result.counters.privacy==='policy-unavailable'&&!r.envelope.result.metadata.pathHash),true);
+  response(await invoke(path,'beforeReadFile',JSON.stringify({...common,file_path:join(path,'read.txt')})));await owner.scan();
+  assert.ok(owner.journal.records.at(-1).envelope.result.metadata.pathHash);
+  for(const folder of ['inbox','journal'])for(const name of await readdir(join(path,folder))) {
+   const bytes=await readFile(join(path,folder,name),'utf8'); assert.equal(bytes.includes('FAKE_SECRET'),false);assert.equal(bytes.includes(path),false);assert.equal(bytes.includes('edit.txt'),false);
+  }
+  const publisher=await readFile(join(path,'publisher.json'),'utf8');assert.equal(publisher.includes('FAKE_SECRET'),false);assert.equal(publisher.includes(path),false);
+ } finally {await owner.close();}
+ const current=JSON.parse(await readFile(join(path,'publisher.json'),'utf8'));const reopened=await SpoolIngester.open(path,current);
+ try {assert.equal(reopened.journal.records.length,10);assert.equal(JSON.stringify(reopened.journal.records).includes('FAKE_SECRET'),false);}finally{await reopened.close();}
+});
+
+test('root routing refuses unrelated, nested and multi-root contexts even when a configured hook is invoked',async t=>{
+ const {path,config}=await setup(t),nested=join(path,'nested');await (await import('node:fs/promises')).mkdir(nested);await writeFile(join(path,'read.txt'),'Invented.');
+ const base={hook_event_name:'beforeReadFile',cursor_version:'3.26.16',conversation_id:'synthetic',file_path:join(path,'read.txt')};
+ for(const roots of [[nested],[tmpdir()],[path,nested],[]])response(await invoke(path,'beforeReadFile',JSON.stringify({...base,workspace_roots:roots})));
+ assert.deepEqual(await readdir(join(path,'inbox')),[]);
+ response(await invoke(path,'beforeReadFile',JSON.stringify({...base,workspace_roots:[path]})));const owner=await SpoolIngester.open(path,config);
+ try{await owner.scan();assert.equal(owner.journal.records.length,1);assert.equal(owner.journal.records[0].envelope.result.metadata.workspaceRootHashes.length,1);}finally{await owner.close();}
+});
+
+test('a full spool preserves the response and records one private content-free producer-loss marker',async t=>{
+ const {path,config}=await setup(t),fill=join(path,'inbox','fill');await writeFile(fill,'',{mode:0o600});await truncate(fill,25*1024*1024);response(await invoke(path));
+ const markerPath=join(path,'producer-loss.json'),first=await readFile(markerPath,'utf8'),marker=JSON.parse(first);assert.equal(marker.lossVersion,1);assert.equal(marker.category,'publication-failed');assert.ok(first.length<256);assert.equal(first.includes('FAKE_SECRET'),false);assert.equal(first.includes(path),false);assert.equal((await stat(markerPath)).mode&0o777,0o600);
+ response(await invoke(path));assert.equal(await readFile(markerPath,'utf8'),first);await rm(fill);const owner=await SpoolIngester.open(path,config);try{assert.equal((await owner.inspectProducerFailure()).category,'publication-failed');assert.equal(owner.journal.records.length,0);}finally{await owner.close();}
+});
+
+test('explicit helper self-check has diagnostic identity and never becomes native Agent activity or a source gap',async t=>{
+ const {path,config}=await setup(t);const checkId=(await import('node:crypto')).randomUUID();
+ const result=await new Promise((resolveResult,reject)=>{const child=spawn(helper,['--self-check',path,checkId],{stdio:['ignore','pipe','pipe']});let stdout='',stderr='';child.stdout.on('data',b=>stdout+=b);child.stderr.on('data',b=>stderr+=b);child.on('error',reject);child.on('close',code=>resolveResult({code,stdout,stderr}));});
+ response(result,false);const owner=await SpoolIngester.open(path,config);
+ try{await owner.scan();assert.equal(owner.journal.records.length,1);const record=owner.journal.records[0];assert.equal(record.envelope.result.metadata,undefined);assert.equal(record.envelope.result.counters.checkId,checkId);
+ const normalized=normalizeJournalRecord(record);assert.equal(normalized.event.source,'self-check');assert.equal(normalized.event.sourceEvent,'selfCheck');assert.equal(normalized.event.operation,'unknown');assert.equal(normalized.event.operationId,checkId);assert.deepEqual(normalized.event.targets,[]);assert.equal(normalized.pathHint,undefined);
+ const sample=await owner.inspectQueue();assert.equal(sample.readyFiles,0);assert.equal(sample.incomplete,false);
+ }finally{await owner.close();}
+});
+
+test('SIGKILL after retention manifest sync before unlink recovers monotonic sequence and retired retry deduplication',async t=>{
+ const {path,config}=await setup(t),policy={segmentBytes:2048,historyBytes:4096,records:2,ageMs:86400000};
+ response(await invoke(path));response(await invoke(path));const first=(await readdir(join(path,'inbox')))[0],saved=await readFile(join(path,'inbox',first));
+ let owner=await SpoolIngester.open(path,config,undefined,{policy});await owner.scan();await owner.close();response(await invoke(path));
+ const script=`const {SpoolIngester}=require(process.argv[1]);setInterval(()=>{},1000);(async()=>{const owner=await SpoolIngester.open(process.argv[2],JSON.parse(process.argv[3]),undefined,{policy:JSON.parse(process.argv[4]),afterRetentionCommit:async()=>{process.send('retention-committed');await new Promise(()=>{});}});await owner.scan();})().catch(()=>process.exit(1));`;
+ const child=spawn(process.execPath,['-e',script,resolve('dist/transport.cjs'),path,JSON.stringify(config),JSON.stringify(policy)],{stdio:['ignore','ignore','ignore','ipc']});t.after(()=>{if(child.exitCode===null)child.kill('SIGKILL');});
+ const timer=setTimeout(()=>child.kill('SIGKILL'),5000);
+ const message=await Promise.race([once(child,'message'),once(child,'exit').then(()=>{throw new Error('retention-child-exited-before-commit');})]);clearTimeout(timer);assert.equal(message[0],'retention-committed');
+ const lease=JSON.parse(await readFile(join(path,'collector.lock'),'utf8'));const exited=once(child,'exit');child.kill('SIGKILL');await exited;
+ owner=await SpoolIngester.open(path,config,lease.token,{policy});try{await owner.scan();assert.equal(owner.journal.status().nextSequence,4);assert.equal(owner.journal.records.length,1);assert.equal(owner.journal.records[0].ingestSequence,3);
+ await writeFile(join(path,'inbox',first),saved,{mode:0o600});await owner.scan();assert.equal(owner.counters.duplicates,1);assert.equal(owner.journal.records.length,1);assert.deepEqual(await readdir(join(path,'inbox')),[]);
+ }finally{await owner.close();}
 });

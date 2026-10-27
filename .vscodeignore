@@ -1,4 +1,5 @@
 node_modules/**
+landing/**
 .local/**
 .serena/**
 .freebuff/**
@@ -15,3 +16,6 @@ tsconfig.json
 *.vsix
 docs/probe-package-verification.json
 docs/t08-extension-host-verification.json
+docs/t09-t10-extension-host-verification.json
+docs/t11-extension-host-verification.json
+docs/t12-extension-host-verification.json

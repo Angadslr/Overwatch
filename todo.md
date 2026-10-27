@@ -2,7 +2,7 @@
 
 Prepared for Angad · 20 October 2026.
 
-Execution started 21 October 2026. T01–T08 and G1 are complete. G0 passed on 21 October for a reduced local observation profile on Cursor 3.26.16/macOS arm64; T01 also retains historical 3.25.9 evidence. Unsupported child-to-tool joins, session-end delivery, shell/MCP file internals, and acceptance inference remain explicit. T04 supplies the normalized contract; T05–T07 supply the Go privacy pipeline, bounded durable transport and read/edit evidence projection. The native fixture tree is implemented; stable aliases follow in T09 and general physical/visible paths remain T10. This file tracks execution, not completion of the planning request. Follow [plan.md](plan.md) for architecture and product semantics and [HANDOFF.md](HANDOFF.md) for scope.
+Execution started 21 October 2026. T01–T21, T23, G1, G2a and engineering checkpoint G2b are complete. G0 passed on 21 October for a reduced local observation profile on Cursor 3.26.16/macOS arm64; T01 also retains historical 3.25.9 evidence. Unsupported child-to-tool joins, session-end delivery, shell/MCP file internals, and acceptance inference remain explicit. T04 supplies the normalized contract; T05–T07 supply the Go privacy pipeline, bounded durable transport and read/edit evidence projection. The native fixture tree, persistent source-session aliases and local canonical path service are implemented. T11 now separates conversation, generation and operation lifecycles, replay liveness and collector/source health. T12 now adds independent bounded disk/editor observations with unknown actor and explicit partial coverage. Native collection remains fixture-gated. T13 enforces a versioned helper privacy policy and redacted diagnostics; T14 adds consistent Conversations/Files views and recent Explorer badges. T15 adds chronological activity, shared filters, frozen display and read-only inspection with a terminal-controllable placement setting. T16/T17 add qualified overlap rules and local attention controls; the native profile remains explicitly unqualified for physical overlap. T18 adds layered Source Health and a diagnostic-only helper/collector self-check. T19 adds bounded journal retention, crash-safe pruning and validated replay checkpoints. T20 adds passive duplicate-window handling, conservative stale-lease recovery and persistent enable choice across normal reload. T21 adds opt-in existing-hook preservation, exact private backups and conditional restoration. T23 adds reviewed local export and scoped history reset with collector-generation fencing. T22 now reconciles the full production broker burst but remains open for near-cap/shared-host memory, idle CPU and burst helper latency; G3/T24 are gated on those findings. This file tracks execution, not completion of the planning request. Follow [plan.md](plan.md) for architecture and product semantics and [HANDOFF.md](HANDOFF.md) for scope.
 
 ## Execution conventions
 
@@ -195,13 +195,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Concurrent same-model conversations never merge and retain aliases across turns/reload.
-- [ ] Proven child edges render correctly; missing join evidence stays at conversation or unknown scope.
-- [ ] Model/task text/PID/timing are never used as substitute unique identities.
+- [x] Concurrent same-model conversations never merge and retain aliases across turns/reload.
+- [x] Proven child edges render correctly; missing join evidence stays at conversation or unknown scope.
+- [x] Model/task text/PID/timing are never used as substitute unique identities.
 
 **Verification:** Replay concurrency and child fixtures, including two indistinguishable child descriptions and an unjoinable child stop.
 
 **Files likely touched:** `src/core/identity.ts`, `src/core/reducers.ts`, identity tests, `src/ui/conversations.ts`.
+
+**Completion record — T09 completed on 23 October 2026:** Added editor-independent scoped identity keys and bounded local Session N aliases, persisted through workspace mementos and restored independently of replay order. The manager observes every normalized journal fact; the native tree now renders aliases and proven child lifecycle rows, including lifecycle-only sessions. Child file sessions with no retained source join stay separate and file actor scope stays unknown. Conflicting explicit parents/terminal reports remain ambiguous; no model, task text, PID or timing matching is used. Captured T03 concurrency/child fixtures, reordered state restoration and cross-collector/environment/root/worktree cases pass. The actual installed Cursor extension-host regression includes alias and child TreeItem assertions. See [identity/path implementation and review](docs/identity-and-paths.md).
 
 ### T10 — Canonicalize file, root, and worktree identity
 
@@ -211,13 +213,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Multi-root containment picks the correct root, traversal is rejected, and external targets are redacted/unknown by policy.
-- [ ] Symlink aliases and case rules behave as qualified on the target filesystem; unresolved identities do not silently merge.
-- [ ] Identical relative names in separate worktrees or environments remain distinct physical files.
+- [x] Multi-root containment picks the correct root, traversal is rejected, and external targets are redacted/unknown by policy.
+- [x] Symlink aliases and case rules behave as qualified on the target filesystem; unresolved identities do not silently merge.
+- [x] Identical relative names in separate worktrees or environments remain distinct physical files.
 
 **Verification:** Focused tests with spaces, Unicode, nested roots, existing and missing parents, symlinks, rename targets, and case-sensitive/case-insensitive fixtures.
 
 **Files likely touched:** `src/core/paths.ts`, `src/core/identity.ts`, path tests, worktree tests.
+
+**Completion record — T10 completed on 23 October 2026:** Added pure path policy plus a local filesystem adapter with canonical roots, longest-root containment, environment/worktree-qualified location keys, safe relative targets, preserved lexical display locators, root/target substitution checks, internal symlink resolution, independent rename endpoints and bounded exclusions. Missing/new/deleted targets resolve existing parents but receive no physical key. External/excluded paths are redacted; dangling/cyclic/cross-root aliases are refused. The existing fixture opener now uses the service while retaining its stricter no-symlink and six-name native gate. General source path discovery and native multi-root collection are not enabled; irreversible historical hints remain unresolved. Actual macOS volume tests qualified case-insensitive canonical spelling; deterministic filesystem fixtures cover both case rules without global lowercasing. Strict types/contracts/build, 68 unit tests, 10 real-process integration tests and nine actual Cursor extension-host checks passed. Host input is synthetic and does not replace T08 native delivery evidence. All test publishers are disabled with owned hooks/leases absent. Review fixes and exact boundaries: [identity/path implementation](docs/identity-and-paths.md), [host result](docs/t09-t10-extension-host-verification.json). T11 has not started.
 
 ### T11 — Implement independent conversation, turn, and operation lifecycles
 
@@ -227,13 +231,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Turn completion leaves its conversation available; a new generation does not reopen completed operations from the old one.
-- [ ] Out-of-order events never regress terminal state, and absent completion never becomes success.
-- [ ] Reloaded open operations show unknown live state; health reports awaiting-first-native-event separately from helper readiness.
+- [x] Turn completion leaves its conversation available; a new generation does not reopen completed operations from the old one.
+- [x] Out-of-order events never regress terminal state, and absent completion never becomes success.
+- [x] Reloaded open operations show unknown live state; health reports awaiting-first-native-event separately from helper readiness.
 
 **Verification:** Deterministic reducer tests using a fake clock for aging, late completion, terminal duplicates, generation reuse, and reload.
 
 **Files likely touched:** `src/core/reducers.ts`, `src/core/health.ts`, lifecycle tests, health tests.
+
+**Completion record — T11 completed on 24 October 2026:** Implemented bounded independent conversation/generation lifecycle projections, operation live-state labels with an injectable clock and the planned 30-second aging threshold, and collector readiness/delivery/coverage health. A turn stop affects only its complete namespace/generation; conversation records stay available and pending operations stay unresolved. Matching late terminals resolve requests; duplicate IDs are idempotent, repeated operation terminals preserve ambiguity, and late requests cannot regress reported starts/terminals. Replay and delayed pre-enable spool records cannot verify fresh delivery; replayed open operations remain live-unknown while terminal facts survive restart. Native tree labels/tooltips and bounded collection reports expose these dimensions. Failed cleanup reports disconnected/unknown and cannot be acknowledged as a ready re-enable. Work was split into core semantics and editor integration/verification slices. Strict generated contracts/types/build, 89 unit tests, 10 real helper-process integration tests and 14 installed Cursor extension-host checks passed (API 1.128.0, Node 24.19.0). Host input is synthetic, with nativeDelivery false; T08 remains native delivery evidence. Test publishers are disabled, owned hooks/leases absent and inboxes empty. See [T11 lifecycle/health implementation](docs/lifecycle-and-health.md) and [host result](docs/t11-extension-host-verification.json). T12 has not started.
 
 ### T12 — Add honest disk and editor-buffer observations
 
@@ -243,13 +249,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] User/formatter writes appear with unknown actor unless independent source evidence proves one.
-- [ ] Dirty buffers and saved disk changes are distinct, and opening a file does not produce an agent-read claim.
-- [ ] Watchers are scoped/excluded, disposed correctly, and disclose overflow or missed coverage.
+- [x] User/formatter writes appear with unknown actor unless independent source evidence proves one.
+- [x] Dirty buffers and saved disk changes are distinct, and opening a file does not produce an agent-read claim.
+- [x] Watchers are scoped/excluded, disposed correctly, and disclose overflow or missed coverage.
 
 **Verification:** Editor-host tests for unsaved edits, save, external rewrite, delete/create bursts, excluded paths, and watcher disposal.
 
 **Files likely touched:** `src/adapters/fileObservations.ts`, `src/core/reducers.ts`, observation tests, extension tests.
+
+**Completion record — T12 completed on 24 October 2026 (Pacific):** Added owned recursive fixture watchers, file-scheme buffer/save bindings, a bounded metadata-only queue and an independent local observation store/tree group. All local facts have unknown actor, no conversation/call attribution and no inferred operation success or saved byte version. Opening a file creates neither an agent read nor a buffer-change claim. Dirty buffers, editor-save reports and disk notifications remain distinct. Cursor can publish content changes before its dirty-state update; bounded URI/version tracking handles later metadata-only dirty transitions without retaining text. Exclusions run before queuing and after canonical resolution, with no raw error retention. Scope/trust gates, cancellation, ownership generations and disposal prevent late callbacks crossing disable/re-enable. Queue/tracking capacity gaps, errors, history eviction and intrinsically partial watcher coverage are exposed. Local history is bounded host memory, with at most 100 rows/reported records, not automatic source-journal persistence. Work was split into observation core, editor lifecycle wiring and actual host verification. Strict contracts/types/build, 101 unit tests, 10 real-process integration tests and 21 installed Cursor host checks passed (API 1.128.0, Node 24.19.0). Actual editor operations covered unsaved edit, save, formatter, independent rewrite, five-file create/delete burst, exclusions, safe current-file opening and disposal. Native Agent hook regression input remains synthetic; nativeDelivery false does not mean local watcher/editor events were mocked. Owned test collectors/watchers finished stopped, hooks/leases absent and inboxes empty. See [T12 observation implementation](docs/file-observations.md) and [host result](docs/t12-extension-host-verification.json). T13 has not started.
 
 ### T13 — Complete metadata-only privacy enforcement
 
@@ -259,19 +267,21 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Secret-like paths and user exclusions do not enter spool, journal, checkpoints, logs, or default diagnostics.
-- [ ] Unknown source fields and fake secret-bearing exceptions are omitted while safe event/health metadata remains useful.
-- [ ] Missing or stale helper policy uses a privacy-preserving fallback and discloses reduced collection rather than capturing extra data.
+- [x] Secret-like paths and user exclusions do not enter spool, journal, checkpoints, logs, or default diagnostics.
+- [x] Unknown source fields and fake secret-bearing exceptions are omitted while safe event/health metadata remains useful.
+- [x] Missing or stale helper policy uses a privacy-preserving fallback and discloses reduced collection rather than capturing extra data.
 
 **Verification:** Adversarial invented fixtures and byte searches over all generated artifacts; check both initial projection and error/recovery paths.
 
 **Files likely touched:** Helper projection/policy modules, `src/core/privacy.ts`, privacy tests, `docs/privacy.md`.
 
+**Completion record — T13 completed on 25 October 2026 (Pacific):** Added a private versioned hash allowlist compiled from default/custom exclusions, helper filtering before path-hint projection, policy revalidation before publication, current-policy journal admission and privacy-aware replay. Changing workspace exclusions synchronously restricts admission and clears affected UI/local history, then stops collection; invalid settings fail closed. Missing/stale policies publish only coarse safe diagnostics with explicit reduced-collection health counters. Unknown fields/exceptions remain dropped. Default reports omit all local path locators/file keys. The legacy discovery entrypoint is response-only and its content-derived editor timing listener is retired. Legacy publisher upgrades require an owned lease; older helpers reject the new configuration shape. Adversarial process tests search publisher/inbox/journal bytes and replay recovery for invented secrets, default/custom/mixed exclusions, symlinks and absent/stale policies. Historical immutable hashes are filtered on replay, not retroactively deleted. See [privacy implementation](docs/privacy.md).
+
 ### Checkpoint G2a — trustworthiness
 
-- [ ] Actor, file, environment, lifecycle, and evidence distinctions survive replay.
-- [ ] Missing child identity and shell-internal activity remain visibly unqualified.
-- [ ] Default persistence passes the fake-secret and excluded-path tests.
+- [x] Actor, file, environment, lifecycle, and evidence distinctions survive replay.
+- [x] Missing child identity and shell-internal activity remain visibly unqualified.
+- [x] Default persistence passes the fake-secret and excluded-path tests.
 
 ## Phase D — supervision interactions
 
@@ -283,13 +293,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Conversations and files provide consistent counts, hierarchy, evidence, age, and physical-worktree labels.
-- [ ] Badges follow documented priority and include text/icon/tooltips suitable for high-contrast use.
-- [ ] Updates are batched, do not steal focus, and clear stale live emphasis without falsifying completion.
+- [x] Conversations and files provide consistent counts, hierarchy, evidence, age, and physical-worktree labels.
+- [x] Badges follow documented priority and include text/icon/tooltips suitable for high-contrast use.
+- [x] Updates are batched, do not steal focus, and clear stale live emphasis without falsifying completion.
 
 **Verification:** Extension tests plus keyboard/high-contrast manual review in Cursor at representative event volume.
 
 **Files likely touched:** `src/ui/conversations.ts`, `src/ui/files.ts`, `src/ui/decorations.ts`, UI tests, contribution configuration.
+
+**Completion record — T14 completed on 25 October 2026 (Pacific):** Added Files alongside Conversations, sharing the same operation rows, scoped aliases, evidence, ages and counts. File groups distinguish source path hints, physical samples and unresolved local locators; root/environment/worktree labels remain explicit. Badges use attention/edit/read/uncertainty priority, theme colors and text/tooltips; only changed/removed URIs emit after batched updates. Current eligibility and policy are checked again before decoration publication. Recent emphasis expires after 30 seconds while terminal history remains intact. Verified 200-session count consistency, editor focus preservation, real elapsed badge expiry, setting-driven privacy stop/replay/report behavior and cleanup in the installed Cursor host. A separate 200-session fixture received manual keyboard, high-contrast and Explorer W/tooltip review; theme restored and owned collector/window cleaned up. Contracts/types/build, 110 unit tests, 11 actual helper-process tests, Go tests/race checks and 25 installed-editor checks passed. No new ordinary native Agent turn or broader native collection is claimed. See [views and review](docs/supervision-views.md), [host/manual verification](docs/t13-t14-extension-host-verification.json), and [high-contrast capture](docs/t14-high-contrast.png). T15 has not started.
 
 ### T15 — Add activity inspection, filters, and frozen display
 
@@ -299,13 +311,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Selecting an activity shows source, evidence, operation identity, timestamps, file scope, and explicit unknowns.
-- [ ] Filters produce consistent results across list/tree views and can be cleared without losing events.
-- [ ] Freeze mode clearly states collection continues, and resume shows events received while frozen without implying agent pause.
+- [x] Selecting an activity shows source, evidence, operation identity, timestamps, file scope, and explicit unknowns.
+- [x] Filters produce consistent results across list/tree views and can be cleared without losing events.
+- [x] Freeze mode clearly states collection continues, and resume shows events received while frozen without implying agent pause.
 
 **Verification:** Replay a multi-conversation fixture and test filtered counts, missing/deleted targets, follow-latest off, focus preservation, and freeze/resume.
 
 **Files likely touched:** `src/ui/activity.ts`, `src/ui/details.ts`, `src/commands.ts`, activity tests, view-state module.
+
+**Completion record — T15 completed on 25 October 2026 (Pacific):** Added chronological Activity rows, scoped conversation/operation/time/evidence filters shared with Conversations/Files, and a bounded 5,000-event presentation snapshot. Freeze holds rows, ages and evidence while collection continues; incoming event counts and resume are explicit, and Explorer remains live. Follow latest defaults off and optional reveal never changes editor focus or selection. Selecting source/local activity opens the eligible current file plus a read-only metadata inspector with source/identity/timestamps/scope/independent evidence and explicit unknowns. Missing/deleted files open details without recreation or changing historical completion. Details reuse one friendly virtual tab, check current policy/workspace/trust, and cancel/clear on privacy changes. `agentSupervision.detailsBeside` defaults true, can be toggled through the Command Palette/Activity toolbar, and can be changed from the terminal with `npm run supervision:details -- toggle|beside|current|status --workspace PATH`. The JSONC edit preserves comments/unrelated settings and refuses malformed, duplicate, symlinked, replaced or locked settings. Work was delivered in presentation-state, inspection/placement, terminal and verification slices. Review corrected filtered locators/aggregate qualification, in-flight privacy invalidation, open-failure availability and duplicate details tabs. Contracts/types/build, 117 unit tests, 15 real process tests and 31 installed Cursor host checks passed (API 1.128.0, Node 24.19.0). Host checks cover replay/multiple conversations, filters/clear, follow-latest-off focus, real incoming frozen delivery/resume, terminal/editor placement, missing/deleted targets and privacy reset. Both owned test collectors ended off with hooks/leases absent and empty inboxes. No new ordinary native Agent turn, broader native collection or T16 work is claimed. See [activity implementation](docs/activity-inspection.md) and [host verification](docs/t15-extension-host-verification.json).
 
 ### T16 — Add overlap advisory rules
 
@@ -315,13 +329,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Two proven distinct conversations editing the same physical file produce an evidence-backed advisory in the defined window.
-- [ ] Separate worktrees, duplicate events, same-conversation ambiguity, and watcher-only actor guesses do not create false physical conflicts.
-- [ ] Possible stale context requires successful-read/order evidence and remains explicitly qualified.
+- [x] Two proven distinct conversations editing the same physical file produce an evidence-backed advisory in the defined window.
+- [x] Separate worktrees, duplicate events, same-conversation ambiguity, and watcher-only actor guesses do not create false physical conflicts.
+- [x] Possible stale context requires successful-read/order evidence and remains explicitly qualified.
 
 **Verification:** Table-driven positive/negative cases with fake time and source uncertainty, plus replay of the native shared-file fixture.
 
 **Files likely touched:** `src/core/overlap.ts`, overlap tests, `src/core/reducers.ts`, overlap fixtures.
+
+**Completion record — T16, 25 October 2026 (Pacific):** Implemented physical/conversation-qualified concurrent and recent edit advisories plus source-ordered informational stale-context rules. Scope, actor proof, failed/ambiguous operations, duplicates, exclusions and bounds are explicit. Receipt timing never proves concurrency; attempts/ingestion order never prove a read baseline. Positive normalized fixtures pass; the actual T03 shared-file capture remains unqualified and produces no physical-conflict claim. See [rule and attention semantics](docs/overlap-and-attention.md).
 
 ### T17 — Surface attention items and bounded notifications
 
@@ -331,13 +347,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Attention items expose involved actors/files and the facts that triggered the rule.
-- [ ] Stable advisory identities prevent duplicate notifications while a condition remains unchanged.
-- [ ] Notifications default off; acknowledging/muting does not erase event history or stop agents.
+- [x] Attention items expose involved actors/files and the facts that triggered the rule.
+- [x] Stable advisory identities prevent duplicate notifications while a condition remains unchanged.
+- [x] Notifications default off; acknowledging/muting does not erase event history or stop agents.
 
 **Verification:** Replay repeated and changing advisories, test optional notification mode and mute persistence, and inspect copy for unsupported certainty.
 
 **Files likely touched:** `src/ui/attention.ts`, attention tests, notification module, settings declarations.
+
+**Completion record — T17, 25 October 2026 (Pacific):** Added Attention inspection with involved identities/files, exact cause IDs and limitations. Acknowledge/mute are bounded local presentation controls persisted in workspace state, with stable continuous-episode identities. Optional notifications default off, exclude informational/read/success activity, and are limited to three per minute with clock-rollback containment. Native uncertainty remains informational. Source history and agent execution are unchanged. See [Attention verification](docs/t16-t18-extension-host-verification.json).
 
 ### T18 — Add source health and actionable self-checks
 
@@ -347,19 +365,23 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Readiness distinguishes registered integration, working helper, ingesting collector, and actual native-event evidence.
-- [ ] Storage/schema/exclusion/unsupported-environment gaps appear with specific next actions and safe diagnostics.
-- [ ] A self-check has distinct source identity, does not count as real agent activity, and makes no paid model call.
+- [x] Readiness distinguishes registered integration, working helper, ingesting collector, and actual native-event evidence.
+- [x] Storage/schema/exclusion/unsupported-environment gaps appear with specific next actions and safe diagnostics.
+- [x] A self-check has distinct source identity, does not count as real agent activity, and makes no paid model call.
 
 **Verification:** Inject failures at each layer and confirm the visible diagnosis matches the broken layer without exposing payload content.
 
 **Files likely touched:** `src/core/health.ts`, health view, self-check command, health tests, `docs/troubleshooting.md`.
 
+**Completion record — T18, 25 October 2026 (Pacific):** Added Source Health rows for registration, helper response, diagnostic ingestion, ownership, native evidence, partial coverage and bounded queue age/count sampling. Added safe schema/scope/privacy rejection diagnostics and specific next actions. A trusted-launcher UUID self-check exercises helper/spool/collector, normalizes to self-check rather than native activity/source gaps, requires existing eligible collection, and makes no model call. Checks pin the enabled helper and bound process/ingestion waits. Contracts/types/build, 135 unit tests, 16 process integration tests, Go tests and 33 installed Cursor host checks passed (API 1.128.0, Node 24.19.0). Source input remains synthetic; no new ordinary native Agent turn is claimed. See [troubleshooting](docs/troubleshooting.md) and [host result](docs/t16-t18-extension-host-verification.json).
+
 ### Checkpoint G2b — useful supervision
 
-- [ ] Angad can answer “who touched this file, with what evidence?” from the view.
-- [ ] Overlap advisories are explainable, and unknown attribution remains visible.
-- [ ] Keyboard navigation, filters, frozen display, focus, and source health work together.
+- [x] Angad can answer “who touched this file, with what evidence?” from the view.
+- [x] Overlap advisories are explainable, and unknown attribution remains visible.
+- [x] Keyboard navigation, filters, frozen display, focus, and source health work together.
+
+**G2b engineering record:** The installed-editor regression combines evidence inspection, explicit unknown attribution, explainable attention, filter/freeze/focus behavior and distinct readiness/native evidence. This is engineering verification, not a claim that Angad has completed the later T25 pilot.
 
 ## Phase E — reliability and clean installation lifecycle
 
@@ -371,13 +393,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Crash after append/before acknowledgment replays events once; reload does not retain false live operation state.
-- [ ] Time/size limits prune oldest complete segments and update projections/indexes without retaining sensitive orphan data.
-- [ ] Torn final lines and damaged middle segments have different recovery paths, with coverage gaps surfaced.
+- [x] Crash after append/before acknowledgment replays events once; reload does not retain false live operation state.
+- [x] Time/size limits prune oldest complete segments and update projections/indexes without retaining sensitive orphan data.
+- [x] Torn final lines and damaged middle segments have different recovery paths, with coverage gaps surfaced.
 
 **Verification:** Kill/restart integration tests at named persistence boundaries, corruption fixtures, storage-cap stress, and replay timing measurements.
 
 **Files likely touched:** `src/transport/journal.ts`, `src/transport/retention.ts`, checkpoint module, storage/recovery tests.
+
+**Completion record — 25 October 2026:** Bounded age/size/count retention, monotonic replay/dedup, metadata-first crash-safe pruning, policy/source-bound normalized tail checkpoints, live projection/frozen-inspector invalidation and categorized integrity diagnostics are implemented. Both persistence-boundary SIGKILL tests pass. Final verification: 141 unit tests, 17 process tests and 34 installed Cursor checks. A reproducible 2,000-record timing sample is saved without a native-latency or speedup claim. See [history and recovery](docs/history-and-recovery.md).
 
 ### T20 — Implement qualified workspace/window ownership
 
@@ -387,13 +411,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] One effective producer/consumer pipeline operates for an enabled workspace, including reload/extension upgrade.
-- [ ] A second window on the same checkout diagnoses ownership rather than silently duplicating activity; stale ownership is recoverable.
-- [ ] Unrelated projects do not persist telemetry merely because plugin registration has a wider scope.
+- [x] One effective producer/consumer pipeline operates for an enabled workspace, including reload/extension upgrade.
+- [x] A second window on the same checkout diagnoses ownership rather than silently duplicating activity; stale ownership is recoverable.
+- [x] Unrelated projects do not persist telemetry merely because plugin registration has a wider scope.
 
 **Verification:** Native two-window test, stale lease/process-exit cases, nested/multi-root routing, and exact ownership cleanup checks.
 
 **Files likely touched:** `src/integration/workspaceLease.ts`, `src/integration/pluginManager.ts`, helper routing module, ownership tests, compatibility report.
+
+**Completion record — 25 October 2026:** One root-scoped pipeline, passive duplicate windows, strict dead-process lease recovery, structural generated-hook ownership across upgrades, stable collector identity across profiles and exact single-root routing are implemented. Explicit Enable resumes after normal reload; Disable clears the choice. 143 unit, 19 process and Go tests passed. Two actual installed Cursor windows and a separate normal-window reload UI check passed; extension-test memento reset is disclosed. T03 native delivery evidence is retained separately. See [window ownership](docs/window-ownership.md).
 
 ### T21 — Complete safe enable/disable and configuration fallback
 
@@ -403,13 +429,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] A supported workspace can enable, reload, disable, and reenable without new prompts for routine steps already selected by the user.
-- [ ] If fallback configuration is used, exact-byte backup, structural ownership, atomic replace, and compare-before-restore preserve unrelated/later edits.
-- [ ] Restricted/invalid/unsupported setups explain the issue and do not run arbitrary workspace-defined executable paths.
+- [x] A supported workspace can enable, reload, disable, and reenable without new prompts for routine steps already selected by the user.
+- [x] If fallback configuration is used, exact-byte backup, structural ownership, atomic replace, and compare-before-restore preserve unrelated/later edits.
+- [x] Restricted/invalid/unsupported setups explain the issue and do not run arbitrary workspace-defined executable paths.
 
 **Verification:** Setup lifecycle tests including existing unknown hook keys, malformed JSON, foreign permission hooks, modified post-install config, trust changes, and extension upgrade.
 
 **Files likely touched:** `src/integration/pluginManager.ts`, `src/integration/hookConfig.ts`, onboarding commands, integration lifecycle tests, setup documentation.
+
+**Completion record — 25 October 2026:** Trust-gated reload/disable lifecycle now includes explicit opt-in for valid existing project hooks, unknown-key/permission-entry preservation, exact private original backup, atomic guarded replacement and compare-before-restore. Modified configurations and uncertain staging remain untouched. Parser module bundling is corrected and privacy changes clear auto-resume consent immediately. 149 unit, 19 process and 35 installed Cursor checks passed. See [setup and cleanup](docs/setup-and-cleanup.md).
 
 ### T22 — Verify producer failure containment and resource budgets
 
@@ -427,6 +455,10 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Files likely touched:** Stress/failure harness, helper response tests, native smoke record, `docs/performance.md`, transport tuning.
 
+**Open record — T22 measured 25–26 October 2026 (Pacific):** Helper and native missing-executable failure artifacts are recorded, and bounded content-free producer-loss reporting is implemented. Burst isolation still accepted only 1,053 of 2,000 attempts with transport rejections/failures. Near-cap incremental RSS was 166,100,992 bytes, above the proposed 75 MiB target. Measurements predate T23’s per-generation inbox change; rerun on the final transport before qualification. T22 is not complete and G3/T24 remain gated. See [resource/failure report](docs/performance.md).
+
+**Continuation checkpoint — 26 October 2026 (Pacific):** Added the bounded 5,000-source-payload tail, compact identity index, 64 KiB replay, bounded history pages, sequence-based rolling projection, namespace-partitioned reducer deduplication, clock/decoration caching and watcher-aware empty polling. Added a serialized durable batch journal API; production hooks still use the spool. Passed contracts/types/build, 172 unit tests, 23 process tests, Go tests and [40 installed Cursor checks](docs/t22-final-extension-host-verification.json). Comparable replay peak RSS fell from about 330 MiB to 199 MiB but remains over 75 MiB. A disposable synthetic batch writer persisted 2,000/2,000 records at ~22 ms helper-close p95; it is not production transport qualification. Current final-backoff CPU and production burst budgets remain unqualified. See [current measurements and next integration work](docs/performance.md).
+
 ### T23 — Add reviewed local export and scoped data deletion
 
 **Owner:** Privacy/commands. **Dependencies:** T13, T19, T21. **Scope:** M, 3–4 files.
@@ -435,13 +467,15 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] Export preview shows exact included categories and defaults to redacted paths without uploading anything.
-- [ ] History deletion removes selected journal/checkpoint/spool/export-staging artifacts and does not recreate old records from pending producers.
-- [ ] Export and deletion tests cover fake secrets, stale files, multiple workspace ownership, and cancellation.
+- [x] Export preview shows exact included categories and defaults to redacted paths without uploading anything.
+- [x] History deletion removes selected journal/checkpoint/spool/export-staging artifacts and does not recreate old records from pending producers.
+- [x] Export and deletion tests cover fake secrets, stale files, multiple workspace ownership, and cancellation.
 
 **Verification:** Inspect generated archives/manifests, search for invented forbidden markers, and compare filesystem scope before/after deletion in a temporary fixture area.
 
 **Files likely touched:** Export command, deletion command, privacy/export tests, `docs/privacy.md`.
+
+**Completion record — T23 completed on 26 October 2026 (Pacific):** Added allowlisted bounded JSON diagnostic exports with a read-only manifest preview, path redaction by default, optional normalized relative paths, consistent pseudonymized identities and exact reviewed-byte private save. Reviews expire after five minutes and invalidate on cancellation/privacy/retention/reset changes. Scoped history reset disables collection, holds exclusive workspace ownership, previews categories/counts, confirms separately and preserves user files, foreign hooks, original backups and unselected exports. It removes recognized journal/retention/checkpoint/spool/report/staging artifacts, clears current-window projections/aliases/attention, rotates the collector generation and leaves collection off. Installed hooks require the expected generation and use per-generation inboxes; old commands and envelopes cannot restore cleared data. A durable interrupted-reset marker blocks replay until reviewed completion. Review also fixed stale first-export memory after another window resets history and canonicalized one legacy probe test fixture path. Strict contracts/types/build, 164 unit tests, 22 actual process tests, Go tests/race/vet and 40 installed Cursor checks passed (Cursor 3.26.16, API 1.128.0, macOS arm64). Owned test fixture publisher is off, hooks/lease/reset marker absent and pending inbox files zero. Host automation covers the maintenance API and installed cancel command; the modal confirmation itself was not separately UI-driven. No new ordinary native Agent delivery is claimed. See [privacy/commands](docs/privacy.md), [host evidence](docs/t23-extension-host-verification.json), and [T22 limits](docs/performance.md).
 
 ### Checkpoint G3 — personal-beta readiness
 

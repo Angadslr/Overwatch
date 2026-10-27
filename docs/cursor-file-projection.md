@@ -53,3 +53,15 @@ Review focused on evidence claims, scope/call reuse, ordering, child attribution
 Actual final checks: generated-contract freshness, strict TypeScript, build, 41 unit tests, 10 process integration tests, Go tests/race detector and `go vet` passed. Unit cases include captured T02/T03 metadata, supported read/edit variants, missing scope, repeated legitimate reads, same-kind call reuse, completion-before-start, denial/interruption, unknown tool/output categories, child/file separation, worktree/environment isolation, invalid-field coverage and detail eviction. The process test runs real Go hooks through spool and durable journal, normalizes/reduces them, reopens the collector and proves identical replay with no content markers or duplicate effect.
 
 At T07 completion, no new native delivery claim was made. T08 subsequently connected and qualified the [native fixture tree](t08-vertical-slice.md); general visible/canonical path handling remains T10.
+
+## T09/T10 follow-through — 23 October 2026
+
+Reducer joins now share the core identity namespace used for persistent source-session aliases and qualified child lifecycle rows. T10 provides a canonical local path service used by the fixture opener and available to local adapters. Historical source hints remain unresolved: the current source envelope cannot reconstruct arbitrary paths, and replay does not reinterpret old activity using current disk state. See [identity/path implementation](identity-and-paths.md).
+
+## T11 lifecycle follow-through — 24 October 2026
+
+FileActivityStore now derives separate operation live-state labels with a fake-clock-testable 30-second boundary. Source phases/outcomes stay unchanged. Replay marks open state unknown while matching terminal evidence remains terminal. Shell/MCP requests retain operation-level unknown completion without file targets or internal file attribution. Separate conversation/generation projections and collector/source health are described in [T11 verification](lifecycle-and-health.md).
+
+## T12 local observations — 24 October 2026
+
+Independent disk/editor facts now use LocalObservationStore rather than the agent operation reducer. They retain unknown actor and outcome, and cannot verify native delivery or increment source read counts. Missing paths may carry a checked display locator without a physical identity. Watcher/editor lifecycle, dirty-state ordering, exclusions and host-memory limits are recorded in [T12 verification](file-observations.md).
