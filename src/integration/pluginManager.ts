@@ -11,6 +11,7 @@ import { observationCoverage, type LocalObserverHandle, type ObservationCoverage
 import { ConversationIdentities } from '../core/identity';
 import { LifecycleStore, type DeliveryOrigin } from '../core/lifecycle';
 import { CollectorHealth } from '../core/health';
+import { snapshotEvent } from '../core/eventValidation';
 import { fixturePolicy, type PrivacyPolicy } from './privacyPolicy';
 import { privacyExclusions, permittedPath } from '../core/privacy';
 import { spawn } from 'node:child_process';
@@ -332,9 +333,12 @@ export class PluginManager {
       const projected = excluded ? { ...record, envelope: { ...record.envelope, result: { ...record.envelope.result, counters: { ...record.envelope.result.counters, privacy: 'excluded-path' as const } } } } : record;
       const alreadyObserved = record.ingestSequence <= this.lastProcessedSequence;
       if (!alreadyObserved) this.health.observePrivacy(projected.envelope.result.counters.privacy);
-      const observation = this.cachedReplay.get(record.ingestSequence) ?? normalizeJournalRecord(projected);
-      if (!observation)
+      const normalized = this.cachedReplay.get(record.ingestSequence) ?? normalizeJournalRecord(projected);
+      if (!normalized)
         continue;
+      const checked = snapshotEvent(normalized.event, 'journal');
+      if (!checked.ok) throw new Error('invalid-projection-event');
+      const observation: FileObservation = { ...normalized, event: checked.event };
       // Journal replay and delayed pre-enable spool records do not prove fresh delivery.
       const origin: DeliveryOrigin = record.ingestSequence <= this.replayThroughSequence || Date.parse(observation.event.receivedAt) < this.collectionStartedAt ? 'replay' : 'live';
       this.identities.observe(observation.event);
@@ -344,6 +348,7 @@ export class PluginManager {
       if (this.store.apply(observation, origin) || !this.evidence.has(observation.event.eventId))
         changed = true;
       this.evidence.set(observation.event.eventId, observation);
+      this.cachedReplay.delete(record.ingestSequence);
       while (this.evidence.size > 5000)
         this.evidence.delete(this.evidence.keys().next().value!);
     }

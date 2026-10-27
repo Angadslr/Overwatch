@@ -1,5 +1,5 @@
 import type { EventV1, Evidence } from '../core/contracts';
-import { parseEvent } from '../core/eventValidation';
+import { parseEvent, snapshotEvent } from '../core/eventValidation';
 import { parseSource } from '../transport/sourceValidation';
 import type { SourceEnvelopeV1, SourceMetadata } from '../transport/sourceContracts';
 import type { SourceJournalRecord } from '../transport/journal';
@@ -135,6 +135,6 @@ export function normalizeJournalRecord(record: SourceJournalRecord): CursorObser
   if (!observation)
     return undefined;
   observation.event.ingestSequence = record.ingestSequence;
-  const checked = parseEvent(JSON.stringify(observation.event), 'journal');
-  return checked.ok ? observation : undefined;
+  const checked = snapshotEvent(observation.event, 'journal');
+  return checked.ok ? {...observation,event:checked.event} : undefined;
 }

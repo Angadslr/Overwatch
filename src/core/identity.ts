@@ -1,5 +1,5 @@
 import type { EventV1 } from './contracts';
-import { parseEvent } from './eventValidation';
+import { snapshotEvent } from './eventValidation';
 
 export type IdentityScope = Pick<EventV1, 'collectorId' | 'environmentId' | 'workspaceId' | 'worktreeId'>;
 export const identityNamespace = (scope: IdentityScope): Array<string | null> =>
@@ -79,7 +79,7 @@ export class ConversationIdentities {
   }
 
   observe(input: EventV1): void {
-    const checked = parseEvent(JSON.stringify(input), input.ingestSequence === undefined ? 'spool' : 'journal');
+    const checked = snapshotEvent(input, input.ingestSequence === undefined ? 'spool' : 'journal');
     if (!checked.ok) throw new Error('invalid-identity-event');
     const event = checked.event;
     if (event.conversationId) this.session(event, event.conversationId);

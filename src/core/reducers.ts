@@ -1,5 +1,5 @@
 import type { EventV1 } from './contracts';
-import { parseEvent } from './eventValidation';
+import { parseEvent, snapshotEvent } from './eventValidation';
 import { identityNamespace as namespace } from './identity';
 import type { DeliveryOrigin } from './lifecycle';
 import { excludedPath, validRelativePath } from './paths';
@@ -130,8 +130,7 @@ export class FileActivityStore {
     this.coverageDropped = 0; this.transportGaps = 0;
   }
   apply(observation: FileObservation, origin: DeliveryOrigin = 'live'): boolean {
-    const json = JSON.stringify(observation.event);
-    const checked = parseEvent(json, observation.event.ingestSequence === undefined ? 'spool' : 'journal');
+    const checked = snapshotEvent(observation.event, observation.event.ingestSequence === undefined ? 'spool' : 'journal');
     if (!checked.ok || (observation.pathHint !== undefined && !/^[0-9a-f]{64}$/.test(observation.pathHint)))
       throw new Error('invalid-file-observation');
     const e = checked.event;
@@ -149,7 +148,7 @@ export class FileActivityStore {
     }
     if (!['read', 'edit', 'delete', 'search', 'shell', 'mcp'].includes(e.operation))
       return true;
-    const fact: FileObservation = observation.pathHint === undefined ? { event: e } : { event: e, pathHint: observation.pathHint };
+    let fact: FileObservation = observation.pathHint === undefined ? { event: e } : { event: e, pathHint: observation.pathHint };
     const key = keyOf(fact);
     let bucket = this.buckets.get(key);
     // At the detail bound, remove the whole oldest group. Its IDs remain seen
@@ -167,9 +166,9 @@ export class FileActivityStore {
         bucket = undefined;
     }
     if (this.retired.has(key) && e.sourceCallId) {
-      e.evidence.correlation = 'ambiguous';
-      if (!e.evidence.limitations.includes('call-id-reused'))
-        e.evidence.limitations.push('call-id-reused');
+      const limitations = [...e.evidence.limitations];
+      if (!limitations.includes('call-id-reused')) limitations.push('call-id-reused');
+      fact = { ...fact, event: { ...e, evidence: { ...e.evidence, correlation: 'ambiguous', limitations } } };
     }
     if (!bucket) {
       bucket = { facts: [], liveStateUnknown: origin === 'replay' };

@@ -1,5 +1,5 @@
 import type { EventV1 } from './contracts';
-import { parseEvent } from './eventValidation';
+import { snapshotEvent } from './eventValidation';
 import { conversationKey, identityNamespace } from './identity';
 import {ScopedEventSet} from './scopedEvents';
 export type DeliveryOrigin = 'live' | 'replay';
@@ -48,7 +48,7 @@ export class LifecycleStore {
   private readonly seen = new ScopedEventSet();
   coverageDropped = 0;
   apply(input: EventV1, origin: DeliveryOrigin = 'live'): boolean {
-    const checked = parseEvent(JSON.stringify(input), input.ingestSequence === undefined ? 'spool' : 'journal');
+    const checked = snapshotEvent(input, input.ingestSequence === undefined ? 'spool' : 'journal');
     if (!checked.ok)
       throw new Error('invalid-lifecycle-event');
     const event = checked.event;

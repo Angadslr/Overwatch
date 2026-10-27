@@ -447,7 +447,7 @@ If G0 fails, finish the capability report and document the required upstream fea
 
 **Acceptance criteria:**
 
-- [ ] The measured report includes hardware/build, sample count, cold/warm p50/p95, hook-to-view latency, CPU/memory, and storage/replay results.
+- [x] The measured report includes hardware/build, sample count, cold/warm p50/p95, hook-to-view latency, CPU/memory, and storage/replay results. First-launch samples are explicitly distinguished from forced OS-cache cold starts; provider-row latency is distinguished from paint.
 - [ ] Tested telemetry failures do not intentionally block/continue agents through malformed output; any remaining launcher/runtime limitation is disclosed and resolved before release claims.
 - [ ] Queue, memory, storage, refresh rate, quarantine, and error logs stay bounded with visible loss/gap accounting.
 
@@ -458,6 +458,8 @@ If G0 fails, finish the capability report and document the required upstream fea
 **Open record — T22 measured 25–26 October 2026 (Pacific):** Helper and native missing-executable failure artifacts are recorded, and bounded content-free producer-loss reporting is implemented. Burst isolation still accepted only 1,053 of 2,000 attempts with transport rejections/failures. Near-cap incremental RSS was 166,100,992 bytes, above the proposed 75 MiB target. Measurements predate T23’s per-generation inbox change; rerun on the final transport before qualification. T22 is not complete and G3/T24 remain gated. See [resource/failure report](docs/performance.md).
 
 **Continuation checkpoint — 26 October 2026 (Pacific):** Added the bounded 5,000-source-payload tail, compact identity index, 64 KiB replay, bounded history pages, sequence-based rolling projection, namespace-partitioned reducer deduplication, clock/decoration caching and watcher-aware empty polling. Added a serialized durable batch journal API; production hooks still use the spool. Passed contracts/types/build, 172 unit tests, 23 process tests, Go tests and [40 installed Cursor checks](docs/t22-final-extension-host-verification.json). Comparable replay peak RSS fell from about 330 MiB to 199 MiB but remains over 75 MiB. A disposable synthetic batch writer persisted 2,000/2,000 records at ~22 ms helper-close p95; it is not production transport qualification. Current final-backoff CPU and production burst budgets remain unqualified. See [current measurements and next integration work](docs/performance.md).
+
+**Current continuation — after pushed checkpoint b252ec5:** Production authenticated broker delivery now reconciles all 2,000 burst attempts and all 2,041 installed warm/normal/burst events. The shared immutable projection-snapshot step passed 185 unit tests, 30 process tests and 40 installed Cursor checks. Near-cap incremental RSS measured 111.7 MiB versus 128.0 MiB for its saved checkpoint control; both validate every retained row and project the latest 5,000. The standard journal map remains: a binary-index experiment was rejected for a small memory saving. Loaded idle CPU 2.94%, shared-host incremental RSS 286.0 MiB and burst helper p95 57.64 ms still miss unchanged targets. T22/G3/T24 remain open. See [snapshot evidence](docs/t22-immutable-snapshot-verification.json), [resource report](docs/performance.md), and [required independent snapshot checks](docs/INDEPENDENT-TEST-PLAN.md).
 
 ### T23 — Add reviewed local export and scoped data deletion
 

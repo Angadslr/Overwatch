@@ -4,7 +4,7 @@ import { randomUUID,createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { normalizeCursorEnvelope, normalizeJournalRecord, type CursorObservation } from '../../src/adapters/cursorHooks';
 import { FileActivityStore } from '../../src/core/reducers';
-import { parseEvent } from '../../src/core/eventValidation';
+import { parseEvent, snapshotEvent } from '../../src/core/eventValidation';
 import type { SourceEnvelopeV1,SourceMetadata } from '../../src/transport/sourceContracts';
 
 const hash=(s:string)=>createHash('sha256').update(s).digest('hex');
@@ -99,7 +99,8 @@ test('detail eviction preserves deduplication and does not restore certainty to 
   const store=new FileActivityStore();const original=source('beforeReadFile');const originalObservation=apply(store,original);
   for(let i=0;i<10000;i++)apply(store,source('beforeReadFile',{callId:hash('bounded-'+i)}));
   assert.ok(store.snapshot().coverageDropped>0);assert.equal(store.apply(originalObservation),false);
-  apply(store,source('postToolUse'));
+  const late=mapped(source('postToolUse')),checked=snapshotEvent(late.event);assert.equal(checked.ok,true);if(!checked.ok)throw new Error('fixture-rejected');
+  const immutable=JSON.stringify(checked.event);store.apply({...late,event:checked.event});assert.equal(JSON.stringify(checked.event),immutable);
   const snapshot=store.snapshot();assert.ok(snapshot.operations.length<=10000);
   const retired=snapshot.operations.find(o=>o.eventIds.includes(original.eventId));assert.equal(retired,undefined);
   assert.ok(snapshot.operations.some(o=>o.state==='ambiguous'));assert.equal(snapshot.files[0]?.completedReads,0);

@@ -1,0 +1,114 @@
+{
+  "recordedAt": "2026-10-27T03:48:07.133Z",
+  "baselineCommit": "b252ec58f056f038e91b4dc6cc44ad70646760a5",
+  "scope": "shared immutable validated projection snapshots; standard journal map retained",
+  "nativeAgentDelivery": false,
+  "checks": {
+    "strictTypesContractsBuild": true,
+    "unit": {
+      "passed": 185,
+      "failed": 0,
+      "skipped": 0
+    },
+    "process": {
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalContractAssertions": {
+      "passed": 10,
+      "failed": 0
+    },
+    "installedEditor": {
+      "passed": true,
+      "checks": 40
+    },
+    "go": "source unchanged from checkpoint with passing uncached tests/race/vet",
+    "finalFocusedAssertions": {
+      "passed": 22,
+      "failed": 0,
+      "note": "Contracts and cursor projection assertions rerun after final guard formatting and equivalent derived-limitations copy."
+    }
+  },
+  "resourceQualification": {
+    "passed": false,
+    "nearCap": {
+      "records": 97280,
+      "bytes": 104856734,
+      "projectionRecords": 5000,
+      "controlIncrementalRssBytes": 134168576,
+      "incrementalRssBytes": 117096448,
+      "observedReductionBytes": 17072128,
+      "targetBytes": 78643200,
+      "stagedLoadingVisible": true
+    },
+    "installed": {
+      "observed": 2041,
+      "expected": 2041,
+      "normalHelperP95Ms": 30.139917,
+      "providerP95Ms": 200.763916,
+      "burstHelperP95Ms": 57.636,
+      "idleCpuPercent": 2.943184075632682,
+      "baselineCpuPercent": 0.9689222060655188,
+      "emptyCpuPercent": 1.924196009920732,
+      "incrementalRssBytes": 299941888
+    }
+  },
+  "decisions": [
+    "Rejected binary collision-chain journal index: only 4.8 MiB observed RSS saving versus map control did not justify its added lookup complexity.",
+    "Only snapshots validated and deeply frozen by the module can reuse its private WeakSet validation mark. Caller-owned frozen objects are revalidated.",
+    "Derived call-reuse ambiguity uses a separate event/evidence object; source snapshots stay immutable.",
+    "Consumed checkpoint projection entries are released."
+  ],
+  "limitations": [
+    "Near-cap RSS reduction is one controlled comparison, not a stable memory bound.",
+    "Editor CPU/RSS cover the shared installed host; controls and measurement scope remain visible.",
+    "CPU, memory and burst-helper latency budgets remain unmet. T22/G3/T24 stay open.",
+    "Go suites were not repeated for this TypeScript-only step; source is unchanged from the qualified checkpoint."
+  ],
+  "evidence": [
+    "docs/t22-map-index-control.json",
+    "docs/t22-binary-index-history.json",
+    "docs/t22-shared-snapshot-history.json",
+    "docs/t22-immutable-snapshot-history.json",
+    "docs/t22-immutable-snapshot-editor-performance.json"
+  ],
+  "cleanup": [
+    {
+      "run": "t22-immutable-regression",
+      "checks": 40,
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    },
+    {
+      "run": "t22-immutable-performance",
+      "checks": 2,
+      "publisherEnabled": false,
+      "brokerConfigured": false,
+      "hooksPresent": false,
+      "leasePresent": false,
+      "resetIntentPresent": false,
+      "pendingInboxEntries": 0
+    }
+  ],
+  "sha256": {
+    "src/adapters/cursorHooks.ts": "58b7ecd7d381a6d6cbe11c4064c52ae4feec880b6346eafb0ae30f0209e3e0c0",
+    "src/core/eventValidation.ts": "fbc410a6f31075b327c4199ad925229125e652745e0d8bcec29a4f59eda09655",
+    "src/core/identity.ts": "fb7c2f842304646966f56da577f73ca524d5bb4ea111eb7313ba40d895fc8aeb",
+    "src/core/lifecycle.ts": "a4b97dde40806820bed7d8ed1ad61a3c3e65e89bede10fc368d3a9b6702bb316",
+    "src/core/reducers.ts": "5eb543a31c6dc468b50f8b381c3be6b460f1f8314fcfcab30ea5623850c848a5",
+    "src/integration/pluginManager.ts": "f55a0054fec08e556264c7d5bc3111b281c0495b85765243fb5d63f1c8e60e1d",
+    "src/transport/journalIndex.ts": "a157e44ad9fd900a28d1c3baa65c4fef0990decd60384036fb2b6b5529bffaad",
+    "tests/unit/contracts.test.ts": "73c844dc7264fd2a0c57954557f728a2a2832324b83b7f63cf2836937c5694d5",
+    "tests/unit/cursor-projection.test.ts": "56128f3cf877a15e9e8e384969562dabe290f464c59e2f014ea19c7e8661def9",
+    "dist/extension.cjs": "adcd5b4512ed5ffecd6246a28c9fadd87ece33e45074e171e9929712bd137189",
+    "dist/cursor-supervision-hook": "7bf6f65983632cd366ca676802936156c3483a84e79f02b62110f7bcc61b4a1d",
+    "docs/INDEPENDENT-TEST-PLAN.md": "24e21278058743f6a12ddb008a9678db671416743094cefaf10d56ff04e95dd4",
+    "HANDOFF.md": "8ff167f937b392752c59058858d6dd4d00197732994a40eda353205fb1cfa22d",
+    "todo.md": "b19fd1be69f8490069a5d93072b9089cd6fc8e3dec5a8beca839229e0485d9f4"
+  }
+}

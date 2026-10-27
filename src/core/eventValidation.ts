@@ -36,6 +36,31 @@ export function parseEvent(json: string, stage: EventStage = 'spool'): EventResu
   return { ok: true, event: value };
 }
 
+const snapshots = new WeakSet<object>();
+function freezeSnapshot(value: object): void {
+  for (const child of Object.values(value)) if (child !== null && typeof child === 'object') freezeSnapshot(child);
+  Object.freeze(value);
+}
+
+/** Validate and detach caller-owned data once. Only snapshots created here are
+ * shared: a frozen caller object alone is never evidence of prior validation. */
+export function snapshotEvent(input: EventV1, stage: EventStage = 'spool'): EventResult {
+  if (snapshots.has(input)) {
+    if ((stage === 'spool' && input.ingestSequence !== undefined) ||
+        (stage === 'journal' && input.ingestSequence === undefined)) {
+      return { ok: false, reason: 'invalid-stage' };
+    }
+    return { ok: true, event: input };
+  }
+  let checked: EventResult;
+  try { checked = parseEvent(JSON.stringify(input), stage); }
+  catch { return { ok: false, reason: 'invalid-event' }; }
+  if (!checked.ok) return checked;
+  freezeSnapshot(checked.event);
+  snapshots.add(checked.event);
+  return checked;
+}
+
 interface ProjectionShape {
   $ref?: string;
   type?: string;

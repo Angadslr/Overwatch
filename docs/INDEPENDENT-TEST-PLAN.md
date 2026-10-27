@@ -164,3 +164,23 @@ Final index-first regression passed 183 unit tests, 30 process tests and 40 inst
 [Local rerun evidence](t22-local-retest-verification.json) qualifies the current working directory, including untracked T16 implementation/tests. Strict checks/build, all 183 unit tests, all 30 process tests, uncached Go tests/race, vet and all 40 installed-editor checks passed. There were no skipped core tests. All nine overlap tests passed, so T16 is complete locally; T22 remains the open task. The current execution summary now leads `HANDOFF.md` to prevent historical next-task statements from selecting an older phase.
 
 Fresh sequential resource runs reconciled 2,000/2,000 transport-only burst events (24.28 ms helper-close p95) and 2,041/2,041 installed warm/normal/burst events. Installed normal helper p95 was 26.63 ms and provider-row p95 201.48 ms. Budget failures remain: burst helper p95 53.35 ms, loaded idle CPU 3.15%, shared-host incremental peak RSS 291.8 MiB, and near-cap incremental RSS 123.3 MiB. The disabled/empty CPU controls were 0.97%/2.90%; all measurements retain their stated shared-host/standalone scopes. No ordinary native Agent call was added. See the three `t22-retest-*.json` performance reports.
+
+## Shared immutable snapshot follow-up
+
+The b252ec5 checkpoint was committed and pushed before this step. Production retains the standard `JournalIndex` map: an experimental binary collision-chain replacement saved only 4.8 MiB in its comparison and was rejected to avoid adding journal lookup complexity for a small gain. Its measurement is explicitly marked exploratory.
+
+The follow-up validates/detaches normalized event data once, deeply freezes that snapshot and shares it across identity, lifecycle, file projection and manager evidence. A private `WeakSet` recognizes only snapshots produced by this module. Caller-frozen objects cannot bypass validation. Consumed checkpoint entries are released after projection; derived call-reuse ambiguity gets separate evidence instead of mutating shared source facts.
+
+Required verification:
+
+| Case | Expected result and executable coverage |
+|---|---|
+| S01 | Caller mutations after admission cannot change a snapshot; nested objects/arrays reject mutation. `tests/unit/contracts.test.ts`, validated-snapshot test. |
+| S02 | Caller-frozen objects and changed nested extras are still validated; cyclic, extra-field and oversized inputs fail safely. `tests/unit/contracts.test.ts`, caller-freezing test. |
+| S03 | Reusing an owned immutable snapshot returns the same object but still enforces spool/journal stage. `tests/unit/contracts.test.ts`. |
+| S04 | Retired/reused call evidence remains ambiguous without changing the shared source event. Extended detail-eviction test in `tests/unit/cursor-projection.test.ts`. |
+| S05 | Warm checkpoint replay still projects every event and fresh arrivals, with replay liveness unknown. Retention/supervision unit tests and installed replay/maintenance suites. |
+| S06 | Privacy changes invalidate display/details; exports retain exact reviewed bytes; reset rotates generation and removes owned artifacts. Installed regression and existing process suites. |
+| S07 | Re-run near-cap memory and installed load sequentially. Preserve raw CPU/memory controls, all 2,041 expected events, and unchanged budget failures. No forced GC during measured peaks. |
+
+Review snapshot ownership, recursive freezing, input aliasing and derived-evidence copies. A schema-valid but merely caller-frozen object is not a trusted snapshot. Do not substitute successful functional tests for resource-budget qualification.

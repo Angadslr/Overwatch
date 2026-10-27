@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { parseEvent, projectEventCandidate } from '../../src/core/eventValidation';
+import { parseEvent, projectEventCandidate, snapshotEvent } from '../../src/core/eventValidation';
 import { MAX_EVENT_BYTES, type EventV1 } from '../../src/core/contracts';
 import exampleJson from '../fixtures/core/event-v1.json';
 
@@ -131,4 +131,23 @@ test('core contract modules have no editor or Node imports', async () => {
     const source = await readFile(`src/core/${name}`, 'utf8');
     assert.equal(/(?:from\s*|import\s*\(|require\s*\()\s*['"](?:vscode|node:)/.test(source), false);
   }
+});
+
+test('validated snapshots detach caller data, deeply freeze nested evidence and reuse only their own immutable copies',()=>{
+ const input=copy(),checked=snapshotEvent(input);assert.equal(checked.ok,true);if(!checked.ok)throw new Error('fixture-rejected');
+ assert.notEqual(checked.event,input);assert.equal(Object.isFrozen(checked.event),true);assert.equal(Object.isFrozen(checked.event.evidence),true);assert.equal(Object.isFrozen(checked.event.evidence.limitations),true);assert.equal(Object.isFrozen(checked.event.targets),true);
+ const before=JSON.stringify(checked.event);input.workspaceId='changed';input.evidence.limitations.push('source-coverage-partial');
+ assert.equal(JSON.stringify(checked.event),before);
+ assert.throws(()=>{checked.event.workspaceId='mutated';},TypeError);assert.throws(()=>checked.event.evidence.limitations.push('source-coverage-partial'),TypeError);
+ const reused=snapshotEvent(checked.event);assert.equal(reused.ok,true);if(reused.ok)assert.equal(reused.event,checked.event);
+ assert.deepEqual(snapshotEvent(checked.event,'journal'),{ok:false,reason:'invalid-stage'});
+ const journal=snapshotEvent({...copy(),ingestSequence:1},'journal');assert.equal(journal.ok,true);if(journal.ok)assert.deepEqual(snapshotEvent(journal.event),{ok:false,reason:'invalid-stage'});
+});
+
+test('caller freezing and later mutation never bypass strict snapshot validation',()=>{
+ const shallow=Object.freeze(copy());const first=snapshotEvent(shallow);assert.equal(first.ok,true);
+ (shallow.evidence as unknown as Record<string,unknown>).prompt='FAKE_SECRET';assert.deepEqual(snapshotEvent(shallow),{ok:false,reason:'invalid-event'});
+ const extra={...copy(),prompt:'FAKE_SECRET'};assert.deepEqual(snapshotEvent(extra),{ok:false,reason:'invalid-event'});
+ const oversized={...copy(),workspaceId:'x'.repeat(MAX_EVENT_BYTES)};assert.deepEqual(snapshotEvent(oversized),{ok:false,reason:'too-large'});
+ const cyclic=copy() as EventV1&{cycle?:unknown};cyclic.cycle=cyclic;assert.deepEqual(snapshotEvent(cyclic),{ok:false,reason:'invalid-event'});
 });
