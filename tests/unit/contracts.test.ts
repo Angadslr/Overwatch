@@ -9,6 +9,17 @@ const example = exampleJson as EventV1;
 const copy = (): EventV1 => structuredClone(example);
 const accepts = (value: unknown): boolean => parseEvent(JSON.stringify(value)).ok;
 
+test('snapshot detachment never rereads accessors or shares mutable event containers', () => {
+  const input = copy();let reads = 0;
+  const receipt = input.receivedAt;
+  Object.defineProperty(input, 'receivedAt', {enumerable: true, get: () => {reads++;return receipt;}});
+  const result = snapshotEvent(input);assert.equal(result.ok, true);assert.equal(reads, 1);
+  if (!result.ok) throw new Error('Snapshot rejected');
+  assert.notEqual(result.event.evidence, input.evidence);assert.notEqual(result.event.targets, input.targets);
+  input.evidence.limitations.push('transport-gap');assert.notDeepEqual(result.event.evidence.limitations, input.evidence.limitations);
+  assert.ok(Object.isFrozen(result.event.evidence.limitations));
+});
+
 test('complete event-v1 example is valid, typed and preserves independent evidence', () => {
   const result = parseEvent(JSON.stringify(example));
   assert.equal(result.ok, true);

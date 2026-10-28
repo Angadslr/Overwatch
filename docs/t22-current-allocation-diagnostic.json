@@ -1,0 +1,96 @@
+{
+  "recordedAt": "2026-10-27T22:47:49.540Z",
+  "diagnosticOnly": true,
+  "productionImplementation": {
+    "extension.cjs": "59cead44b635a3b1099dcf281fdcecd6d9dc819137d4b5d8433b09b48acd5bc3",
+    "cursor-supervision-hook": "1db897b5d21036204475b9cb8d91a500f9127ed55aca0519b804de1105fb944a"
+  },
+  "profilePath": ".local/t08-extension-tests-t22-final-allocations/allocations.heapprofile",
+  "sampledAllocationBytes": 1190330756,
+  "topAllocationSites": [
+    {
+      "site": "projectFiles dist/extension.cjs:13322",
+      "bytes": 140065916
+    },
+    {
+      "site": "conversationKey dist/extension.cjs:10711",
+      "bytes": 105631604
+    },
+    {
+      "site": "refresh dist/extension.cjs:13903",
+      "bytes": 74163956
+    },
+    {
+      "site": "viewSnapshot dist/extension.cjs:10987",
+      "bytes": 59252112
+    },
+    {
+      "site": "filesOf dist/extension.cjs:10897",
+      "bytes": 56379416
+    },
+    {
+      "site": "(anonymous) dist/extension.cjs:13354",
+      "bytes": 56159888
+    },
+    {
+      "site": "roots dist/extension.cjs:13458",
+      "bytes": 54697480
+    },
+    {
+      "site": "overlapAdvisories dist/extension.cjs:14798",
+      "bytes": 49025936
+    },
+    {
+      "site": "activityKey dist/extension.cjs:13369",
+      "bytes": 35327212
+    },
+    {
+      "site": "join (runtime):0",
+      "bytes": 33442468
+    },
+    {
+      "site": "set (runtime):0",
+      "bytes": 29770268
+    },
+    {
+      "site": "(anonymous) dist/extension.cjs:13976",
+      "bytes": 28824908
+    },
+    {
+      "site": "next (runtime):0",
+      "bytes": 25538044
+    },
+    {
+      "site": "flatMap (runtime):0",
+      "bytes": 22123092
+    },
+    {
+      "site": "Map (runtime):0",
+      "bytes": 21128096
+    },
+    {
+      "site": "liveRoots dist/extension.cjs:13605",
+      "bytes": 21111380
+    },
+    {
+      "site": "mM extensionHostProcess.js:48",
+      "bytes": 19572772
+    },
+    {
+      "site": "filter (runtime):0",
+      "bytes": 18748564
+    },
+    {
+      "site": "relativePath dist/extension.cjs:13235",
+      "bytes": 15801284
+    },
+    {
+      "site": "decode node:internal/encoding:482",
+      "bytes": 14740576
+    }
+  ],
+  "limitations": [
+    "Sampling includes objects collected by minor and major GC; totals estimate allocation volume, not retained heap or peak RSS ownership.",
+    "Shared installed host includes builtin extensions. This profile is not resource qualification."
+  ]
+}

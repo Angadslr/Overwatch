@@ -124,14 +124,14 @@ export async function registerSupervision(context: vscode.ExtensionContext, root
       if (displayedHistoryRevision !== manager!.historyRevision) { displayedHistoryRevision = manager!.historyRevision; display.reset(); details.clear();latestRevealed=undefined;maintenance?.invalidateExport(); }
       if (clockOnly) {
         display.tick(Date.now());
-        const message = `${manager!.status} · ${display.status(manager!.enabled)}`;
+        const message = `${manager!.status} · ${display.status(manager!.enabled)}${tree!.clockRefreshMs === 60000 ? ' · Ages refresh each minute' : ''}`;
         view.message = message; fileView.message = message; activityView.message = message;
         activityTree!.refresh();
         return;
       }
       const roots = tree!.liveRoots();
       display.update(captureActivity(manager!, roots), roots, Date.now());
-      const message = `${manager!.status} · ${display.status(manager!.enabled)}`;
+      const message = `${manager!.status} · ${display.status(manager!.enabled)}${tree!.clockRefreshMs === 60000 ? ' · Ages refresh each minute' : ''}`;
       view.message = message; fileView.message = message; activityView.message = message;
       healthTree.refresh();
       const candidates = attentionCandidates(manager!, Date.now());
@@ -144,7 +144,7 @@ export async function registerSupervision(context: vscode.ExtensionContext, root
         void Promise.resolve(vscode.window.showWarningMessage(`Agent Supervision: ${item.title}`, 'Inspect')).then(choice => { if (choice === 'Inspect') return vscode.commands.executeCommand('overwatch.supervision.inspectAttention', item.id); return undefined; }).catch(() => {});
       if (!display.frozen) {
         activityTree!.refresh();
-        const latest = activityTree!.getChildren().at(-1);
+        const latest = activityTree!.latestNode();
         if (latest?.kind === 'activity' && latest.id !== latestRevealed && activityView.visible && config().get('followLatest', false)) {
           latestRevealed = latest.id;
           void Promise.resolve(activityView.reveal(latest, { focus: false, select: false })).catch(() => {});

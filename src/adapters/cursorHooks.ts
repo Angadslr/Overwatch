@@ -1,6 +1,6 @@
 import type { EventV1, Evidence } from '../core/contracts';
 import { parseEvent, snapshotEvent } from '../core/eventValidation';
-import { parseSource } from '../transport/sourceValidation';
+import { snapshotSource, snapshotStringPool } from '../transport/sourceValidation';
 import type { SourceEnvelopeV1, SourceMetadata } from '../transport/sourceContracts';
 import type { SourceJournalRecord } from '../transport/journal';
 export interface CursorObservation {
@@ -25,7 +25,10 @@ function operation(m: SourceMetadata): EventV1['operation'] {
 /** Stateless source facts only. Correlation/reuse decisions belong to the
  * reducer; every normalized observation retains its own immutable identity. */
 export function normalizeCursorEnvelope(input: SourceEnvelopeV1): CursorObservation | undefined {
-  const source = parseSource(Buffer.from(JSON.stringify(input)));
+  return normalizeEnvelope(input);
+}
+function normalizeEnvelope(input: SourceEnvelopeV1, ingestSequence?: number): CursorObservation | undefined {
+  const source = snapshotSource(input);
   if (!source)
     return undefined;
   const measured = source.result.metadata;
@@ -123,7 +126,8 @@ export function normalizeCursorEnvelope(input: SourceEnvelopeV1): CursorObservat
     event.metrics = { durationMs: m.durationMs };
   if (!m)
     event.metrics = { count: 1 };
-  const checked = parseEvent(JSON.stringify(event));
+  if (ingestSequence !== undefined) event.ingestSequence = ingestSequence;
+  const checked = ingestSequence === undefined ? parseEvent(JSON.stringify(event)) : snapshotEvent(event, 'journal', snapshotStringPool(source));
   if (!checked.ok)
     return undefined;
   return pathHint ? { event: checked.event, pathHint } : { event: checked.event };
@@ -131,10 +135,5 @@ export function normalizeCursorEnvelope(input: SourceEnvelopeV1): CursorObservat
 export function normalizeJournalRecord(record: SourceJournalRecord): CursorObservation | undefined {
   if (record.journalVersion !== 1 || !Number.isSafeInteger(record.ingestSequence) || record.ingestSequence < 1)
     return undefined;
-  const observation = normalizeCursorEnvelope(record.envelope);
-  if (!observation)
-    return undefined;
-  observation.event.ingestSequence = record.ingestSequence;
-  const checked = snapshotEvent(observation.event, 'journal');
-  return checked.ok ? {...observation,event:checked.event} : undefined;
+  return normalizeEnvelope(record.envelope, record.ingestSequence);
 }

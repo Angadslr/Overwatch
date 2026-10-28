@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
+import {randomUUID} from 'node:crypto';
 import {performance} from 'node:perf_hooks';
 import {writeHeapSnapshot, getHeapStatistics} from 'node:v8';
-const [modulePath, root, storage, helper, expected] = process.argv.slice(2);
+const [modulePath, root, storage, helper, expected, expectedRetired='0'] = process.argv.slice(2);
 const require = createRequire(import.meta.url);
 const {PluginManager} = require(modulePath);
 const config = JSON.parse(await readFile(join(storage,'publisher.json'),'utf8'));
@@ -19,13 +20,25 @@ try {
  await manager.enable();
  const openAndFirstProjectionMs=performance.now()-started;
  assert.equal(manager.readiness().history.retainedRecords,Number(expected));
+ assert.equal(manager.readiness().history.retiredIdentities,Number(expectedRetired));
  const deadline=Date.now()+15000;
  while(manager.evidence.size<Math.min(Number(expected),5000)&&Date.now()<deadline) await new Promise(resolve=>setTimeout(resolve,50));
  assert.equal(manager.evidence.size,Math.min(Number(expected),5000));
- sample();const settled=process.memoryUsage(),used=process.cpuUsage(cpu),completeRecentProjectionMs=performance.now()-started;
+ const completeRecentProjectionMs=performance.now()-started;
+ let capacityRefusal;
+ if(process.env.OVERWATCH_HISTORY_REFUSAL==='1'){
+  assert.equal(Number(expectedRetired),100000);
+  const journal=manager.ingester.journal,before=manager.readiness().history;
+  const candidate=structuredClone(journal.records.at(-1).envelope),id=randomUUID();candidate.eventId=id;candidate.result.metadata.eventId=id;
+  const refusalStarted=performance.now();
+  await assert.rejects(journal.append(candidate),/retention-dedup-limit/);
+  assert.deepEqual(manager.readiness().history,before);
+  capacityRefusal={passed:true,durationMs:performance.now()-refusalStarted,retainedRecordsUnchanged:true,retiredIdentitiesUnchanged:true};
+ }
+ sample();const settled=process.memoryUsage(),used=process.cpuUsage(cpu);
  if (process.env.OVERWATCH_PROFILE_HISTORY === '1') {
   writeHeapSnapshot(join(process.cwd(),'.local','t22-history.heapsnapshot'));
   console.log(JSON.stringify({profile:'history-live-heap',memory:process.memoryUsage(),heap:getHeapStatistics()}));
  }
- process.send?.({openAndFirstProjectionMs,completeRecentProjectionMs,sourceAndProjectionCpuMs:(used.user+used.system)/1000,incrementalRssBytes:peakRss-initial.rss,incrementalHeapBytes:peakHeap-initial.heapUsed,incrementalExternalBytes:peakExternal-initial.external,incrementalArrayBufferBytes:peakBuffers-initial.arrayBuffers,settledIncrementalRssBytes:settled.rss-initial.rss,peakObservedRssBytes:peakRss,bufferedRecords:manager.readiness().history.bufferedRecords,projectedEvidence:manager.evidence.size,stagedLoadingVisible:statuses.length>0,statuses:statuses.slice(0,3),history:manager.readiness().history});
+ process.send?.({openAndFirstProjectionMs,completeRecentProjectionMs,capacityRefusal,sourceAndProjectionCpuMs:(used.user+used.system)/1000,incrementalRssBytes:peakRss-initial.rss,incrementalHeapBytes:peakHeap-initial.heapUsed,incrementalExternalBytes:peakExternal-initial.external,incrementalArrayBufferBytes:peakBuffers-initial.arrayBuffers,settledIncrementalRssBytes:settled.rss-initial.rss,peakObservedRssBytes:peakRss,bufferedRecords:manager.readiness().history.bufferedRecords,projectedEvidence:manager.evidence.size,checkpointState:manager.readiness().checkpoint,stagedLoadingVisible:statuses.length>0,statuses:statuses.slice(0,3),history:manager.readiness().history});
 } finally { clearInterval(timer);await manager?.disable(); }

@@ -25,6 +25,16 @@ test('source envelopes reject extras, unsupported versions, invalid bytes, ident
   for(const value of [{...e,transportVersion:2},{...e,prompt:'FAKE_SECRET_MARKER'},{...e,result:{...e.result,metadata:{...e.result.metadata,eventId:randomUUID()}}}]) assert.equal(parseSource(Buffer.from(JSON.stringify(value))),undefined);
   assert.equal(parseSource(Buffer.from([255])),undefined);assert.equal(parseSource(Buffer.alloc(16385)),undefined);
 });
+test('concurrent ownership proofs share only an in-flight read and recheck the lease on the next operation',async t=>{
+ const {path,config}=await setup(t),owner=await SpoolIngester.open(path,config);
+ try {
+  const first=owner.assertOwner(),second=owner.assertOwner();assert.equal(first,second);await first;
+  const fresh=owner.assertOwner();assert.notEqual(fresh,first);await fresh;
+  await writeFile(join(path,'collector.lock'),'foreign-owner',{mode:0o600});
+  await assert.rejects(owner.assertOwner());await assert.rejects(owner.scan());
+  await owner.close();assert.equal(await readFile(join(path,'collector.lock'),'utf8'),'foreign-owner');
+ } finally {await owner.close();}
+});
 
 test('exclusive collector syncs before acknowledgment and replay deduplicates a committed retry',async t=>{
   const {path,config}=await setup(t), e=envelope(config);
@@ -58,6 +68,54 @@ test('healthy watcher backs off empty scans but a publication wakes ingestion be
   while(owner.journal.records.length===0&&Date.now()-started<750)await new Promise(resolve=>setTimeout(resolve,10));
   assert.equal(owner.journal.records.length,1);
   assert.ok(Date.now()-started<750);
+ } finally {await owner.close();}
+});
+test('healthy empty sweeps retain their timestamp, invalidate on publication and never bypass ownership',async t=>{
+ const {path,config}=await setup(t),owner=await SpoolIngester.open(path,config);
+ try {
+  await owner.requireCollectorEpoch();owner.start(50,true);await owner.scan();
+  const first=await owner.inspectQueue();await new Promise(resolve=>setTimeout(resolve,20));
+  assert.equal((await owner.inspectQueue()).sampledAt,first.sampledAt);
+  const inbox=join(path,'inbox',config.collectorId);
+  await writeFile(join(inbox,'producer-loss.json'),JSON.stringify({lossVersion:1,category:'publication-failed',recordedAt:new Date().toISOString()}),{mode:0o600});
+  const deadline=Date.now()+2000;let failure;
+  while(!(failure=await owner.inspectProducerFailure())&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(failure?.category,'publication-failed');
+  const source=envelope(config);source.receivedAt=new Date().toISOString();source.result.metadata!.receivedAt=source.receivedAt;
+  await writeFile(join(inbox,source.eventId+'.json'),JSON.stringify(source),{mode:0o600});
+  while(!owner.journal.records.length&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(owner.journal.records.length,1);assert.notEqual((await owner.inspectQueue()).sampledAt,first.sampledAt);
+  await writeFile(join(path,'collector.lock'),'foreign-owner');await assert.rejects(owner.inspectQueue());await assert.rejects(owner.inspectProducerFailure());
+ } finally {await owner.close();}
+});
+test('partial sweeps and sweeps containing a loss marker cannot manufacture an absent-producer result',async t=>{
+ const {path}=await setup(t),legacy=JSON.parse(await readFile(join(path,'publisher.json'),'utf8')),owner=await SpoolIngester.open(path,legacy);
+ try {
+  await owner.requireCollectorEpoch();const inbox=join(path,'inbox',legacy.collectorId);
+  await writeFile(join(inbox,'producer-loss.json'),JSON.stringify({lossVersion:1,category:'deadline-exceeded',recordedAt:new Date().toISOString()}),{mode:0o600});
+  await Promise.all(Array.from({length:270},()=>writeFile(join(inbox,randomUUID()+'.'+randomUUID()+'.tmp'),'',{mode:0o600})));
+  owner.start(5000,true);await owner.scan();await owner.scan();
+  assert.equal((await owner.inspectProducerFailure())?.category,'deadline-exceeded');
+  await owner.scan();assert.equal((await owner.inspectProducerFailure())?.category,'deadline-exceeded');
+ } finally {await owner.close();}
+});
+test('empty metadata probes recover missed notifications and cannot read or acknowledge after lease loss',async t=>{
+ const {path,config}=await setup(t),owner=await SpoolIngester.open(path,config);
+ try {
+  owner.start(50,true);await owner.scan();
+  // Simulate a watcher that silently stops delivering notifications. The timed
+  // metadata probe must still discover a ready entry and run the full scan.
+  (owner as unknown as {watcher:{close():void}}).watcher.close();
+  const source=envelope(config);source.receivedAt=new Date().toISOString();source.result.metadata!.receivedAt=source.receivedAt;
+  await publish(path,source);let deadline=Date.now()+1800;
+  while(!owner.journal.records.length&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,10));
+  assert.equal(owner.journal.records.length,1);assert.equal(owner.counters.accepted,1);
+  await new Promise(resolve=>setTimeout(resolve,150));await owner.scan();
+  await writeFile(join(path,'collector.lock'),'foreign-owner');const pending=envelope(config);await publish(path,pending);
+  const previous=owner.counters.failures;deadline=Date.now()+1800;
+  while(owner.counters.failures===previous&&Date.now()<deadline)await new Promise(resolve=>setTimeout(resolve,10));
+  assert.ok(owner.counters.failures>previous);assert.equal(owner.journal.records.length,1);
+  assert.equal(await readFile(join(path,'inbox',pending.eventId+'.json'),'utf8'),JSON.stringify(pending));
  } finally {await owner.close();}
 });
 
@@ -97,7 +155,10 @@ test('periodic scans collect without any watcher and stop cleanly',async t=>{
     owner.start(50,false);await publish(path,envelope(config));
     const deadline=Date.now()+3000;
     while(owner.counters.accepted!==1 && Date.now()<deadline) await new Promise(resolve=>setTimeout(resolve,20));
-    assert.equal(owner.counters.accepted,1);assert.deepEqual(await readdir(join(path,'inbox')),[]);
+    assert.equal(owner.counters.accepted,1);
+    // Acceptance precedes ready-file acknowledgment. Close waits for the
+    // pending scan, so the inbox postcondition is checked after cleanup.
+    await owner.close();assert.deepEqual(await readdir(join(path,'inbox')),[]);
   }finally{const closing=owner.close();assert.equal(owner.close(),closing);await closing;}
   await assert.rejects(owner.scan(),/collector-closed/);
 });

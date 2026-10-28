@@ -1,0 +1,136 @@
+{
+  "recordedAt": "2026-10-27T17:38:51.539Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "editorApiVersion": "1.128.0",
+  "node": "24.19.0",
+  "firstLaunch": {
+    "type": "complete",
+    "stage": "first",
+    "attempts": 1,
+    "errors": 0,
+    "responseP50Ms": 5.140042,
+    "responseP95Ms": 5.140042,
+    "closedP50Ms": 195.097417,
+    "closedP95Ms": 195.097417,
+    "closedMaxMs": 195.097417,
+    "elapsedMs": 195.260416,
+    "providerVisibleMs": 231.508625
+  },
+  "normal": {
+    "type": "complete",
+    "stage": "normal",
+    "attempts": 40,
+    "errors": 0,
+    "responseP50Ms": 3.613792,
+    "responseP95Ms": 4.786125,
+    "closedP50Ms": 24.663584,
+    "closedP95Ms": 39.376333,
+    "closedMaxMs": 47.026417,
+    "elapsedMs": 1975.469084,
+    "samples": 40,
+    "providerVisibleP50Ms": 137.942959,
+    "providerVisibleP95Ms": 215.634458
+  },
+  "burst": {
+    "type": "complete",
+    "stage": "burst",
+    "attempts": 2000,
+    "errors": 0,
+    "responseP50Ms": 2.798708,
+    "responseP95Ms": 4.586833,
+    "closedP50Ms": 24.8855,
+    "closedP95Ms": 60.538625,
+    "closedMaxMs": 85.660084,
+    "elapsedMs": 10012.607584,
+    "targetPerSecond": 200,
+    "targetSeconds": 10,
+    "totalObserved": 2041,
+    "expectedTotal": 2041,
+    "complete": true
+  },
+  "memory": {
+    "initialRss": 459456512,
+    "peakRss": 690208768,
+    "incrementalRss": 230752256,
+    "incrementalHeap": 271191700
+  },
+  "cpuUsage": {
+    "baselineOneCorePercent": 1.1248260197970994,
+    "baselineSampleMs": 15000.80875,
+    "emptyOneCorePercent": 2.563425491254043,
+    "emptySampleMs": 15000.787084,
+    "busyOneCorePercent": 38.95215907406181,
+    "transitionOneCorePercent": 2.098288404171979,
+    "transitionSampleMs": 3000.4455000000016,
+    "settledWaitMs": 24879,
+    "idleOneCorePercent": 3.734415319423353,
+    "idleIncrementalOneCorePercent": 2.6095892996262533,
+    "idleSampleMs": 15000.848916999996
+  },
+  "readiness": {
+    "registered": true,
+    "owner": true,
+    "supported": true,
+    "health": {
+      "transport": "ready",
+      "publisherConfigured": true,
+      "nativeDelivery": "source-event-observed",
+      "sourceCoverage": "partial",
+      "sourceGapEvents": 0,
+      "historyEvents": 0,
+      "privacy": {
+        "excluded": 0,
+        "policyUnavailable": 0,
+        "unresolved": 0
+      },
+      "lastNativeReceipt": "2026-10-27T17:38:05.538Z",
+      "status": "Collector ready · native source activity observed · coverage partial"
+    },
+    "check": {
+      "state": "not-run"
+    },
+    "counters": {
+      "accepted": 2041,
+      "duplicates": 0,
+      "rejected": 0,
+      "failures": 0,
+      "schemaRejected": 0,
+      "scopeRejected": 0,
+      "policyRejected": 0,
+      "expired": 0
+    },
+    "queue": {
+      "sampledAt": "2026-10-27T17:38:50.973Z",
+      "readyFiles": 0,
+      "oldestObservedAgeMs": 0,
+      "incomplete": false,
+      "scannedEntries": 0
+    },
+    "recoveredTail": false,
+    "history": {
+      "firstSequence": 1,
+      "nextSequence": 2042,
+      "retainedRecords": 2041,
+      "bufferedRecords": 2041,
+      "bufferedFirstSequence": 1,
+      "bytes": 2241952,
+      "retiredIdentities": 0,
+      "expiredBefore": "1970-01-01T00:00:00.000Z"
+    },
+    "checkpoint": "cold-replay",
+    "ownership": "owned",
+    "replayDurationMs": 1
+  },
+  "limitations": [
+    "Synthetic inputs through the installed shell/helper path; no ordinary native Agent delivery claim.",
+    "Helper load runs in a separate Node process; only one coordinator child is hosted here.",
+    "First launch is not a forced cold OS cache.",
+    "Visibility means a matching TreeDataProvider row, not browser paint.",
+    "CPU/RSS cover the shared installed extension host and a bounded sampling probe; incremental values use this active-host baseline.",
+    "Transition CPU is measured separately while recent badges/uncertainty can age; settled idle begins at least 31 seconds after the last accepted source receipt.",
+    "Disabled/empty/loaded idle CPU are separate 15-second shared-host samples; their difference is an estimate, not exclusive process attribution."
+  ]
+}

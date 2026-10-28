@@ -49,9 +49,10 @@ test('time filters use the frozen reference time and source namespace prevents a
 test('clock-only updates expire live filters without counting arrivals or changing a frozen snapshot',()=>{
  const a=entry('clock','same','read',now-900),state=new ActivityViewState();
  state.update([a],roots([a]),now);state.setFilters({withinMs:1000});state.toggleFreeze();
- state.tick(now+2000);assert.equal(state.entries().length,1);assert.equal(state.at,now);assert.equal(state.pending,0);
+ assert.equal(state.tick(now+2000),false);assert.equal(state.entries().length,1);assert.equal(state.at,now);assert.equal(state.pending,0);
  state.toggleFreeze();assert.equal(state.entries().length,0);assert.equal(state.at,now+2000);assert.equal(state.resumed,0);
  state.setFilters({});assert.equal(state.entries().length,1);assert.equal(a.event.receivedAt,new Date(now-900).toISOString());
+ state.setFilters({withinMs:1000});assert.equal(state.tick(now),true);assert.equal(state.tick(now+100),false);assert.equal(state.tick(now+101),true);
 });
 test('display capacity is explicit and does not evict or mutate collector-owned inputs',()=>{
  const entries=Array.from({length:DISPLAY_LIMIT+3},(_,i)=>entry(String(i),'same','read',now+i));const state=new ActivityViewState();state.update(entries,[],now+DISPLAY_LIMIT+4);
@@ -60,4 +61,13 @@ test('display capacity is explicit and does not evict or mutate collector-owned 
 test('malformed filters fail closed and do not overwrite existing predicates',()=>{
  const state=new ActivityViewState();state.setFilters({operation:'read'});for(const input of [null,[],{operation:'command'},{withinMs:0},{withinMs:86400001},{evidence:'certain'},{extra:true},{conversation:123}])assert.throws(()=>state.setFilters(input));
  assert.deepEqual(state.activeFilters,{operation:'read'});assert.deepEqual(checkedFilters({}),{});
+});
+test('provider projection is reused until evidence, filters, freeze or a time boundary changes',()=>{
+ const a=entry('cached','same','read',now-900),state=new ActivityViewState();state.update([a],roots([a]),now);
+ const first=state.roots();assert.equal(state.roots(),first);state.tick(now+1);assert.equal(state.roots(),first);
+ state.setFilters({withinMs:1000});const timed=state.roots();assert.notEqual(timed,first);state.tick(now+101);
+ assert.equal(state.entries().length,0);assert.equal(state.roots()[0]?.kind,'message');
+ state.tick(now);state.toggleFreeze();const frozen=state.roots();state.tick(now+2000);assert.equal(state.roots(),frozen);
+ state.toggleFreeze();assert.equal(state.entries().length,0);state.setFilters({});assert.equal(state.entries().length,1);
+ state.update([],[],now+3000);assert.equal(state.entries().length,0);state.reset();assert.equal(state.roots()[0]?.id,'display-empty');
 });

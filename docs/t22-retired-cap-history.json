@@ -1,0 +1,48 @@
+{
+  "recordedAt": "2026-10-27T20:44:04.367Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "records": 97180,
+  "bytes": 104857220,
+  "segments": 20,
+  "retiredRecords": 100000,
+  "retiredBytes": 17889012,
+  "openAndFirstProjectionMs": 2598.3506249999996,
+  "completeRecentProjectionMs": 7442.788791999999,
+  "sourceAndProjectionCpuMs": 1409.056,
+  "incrementalRssBytes": 158826496,
+  "incrementalHeapBytes": 67830928,
+  "incrementalExternalBytes": 36404562,
+  "incrementalArrayBufferBytes": 18514793,
+  "settledIncrementalRssBytes": 158826496,
+  "peakObservedRssBytes": 236093440,
+  "bufferedRecords": 5000,
+  "projectedEvidence": 5000,
+  "stagedLoadingVisible": true,
+  "statuses": [
+    "Loading retained history · checking journal",
+    "Loading retained history · 200/5000 projected · live state unknown",
+    "Loading retained history · 400/5000 projected · live state unknown"
+  ],
+  "history": {
+    "firstSequence": 100001,
+    "nextSequence": 197181,
+    "retainedRecords": 97180,
+    "bufferedRecords": 5000,
+    "bufferedFirstSequence": 192181,
+    "bytes": 104857220,
+    "retiredIdentities": 100000,
+    "expiredBefore": "1970-01-01T00:00:00.000Z"
+  },
+  "budgetBytes": 78643200,
+  "memoryBudgetPassed": false,
+  "limitations": [
+    "Synthetic near-cap source journal and selected retired-identity fixture are generated outside the measured reader process.",
+    "A fresh reader validates all retained records and completes the recent 5,000-record projection. Older payloads remain on disk.",
+    "RSS/heap are sampled reader-process measurements, not the installed shared extension host.",
+    "An explicit garbage collection precedes the reader baseline; no forced collection is used to reduce measured peaks."
+  ]
+}

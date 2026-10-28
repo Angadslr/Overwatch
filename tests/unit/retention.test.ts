@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { initializeSpool, SpoolIngester, type PublisherConfig } from '../../src/transport/spoolIngester';
 import {RECENT_JOURNAL_RECORDS} from '../../src/transport/journal';
+import {CHECKPOINT_CACHE_ROWS} from '../../src/transport/checkpoint';
 import type { SourceEnvelopeV1 } from '../../src/transport/sourceContracts';
 import { normalizeJournalRecord } from '../../src/adapters/cursorHooks';
 import { FileActivityStore } from '../../src/core/reducers';
@@ -15,6 +16,17 @@ async function setup(t:{after:(fn:()=>Promise<void>)=>void}){const path=await re
 function envelope(config:PublisherConfig,at=start):SourceEnvelopeV1{const eventId=randomUUID(),receivedAt=new Date(at).toISOString();return{transportVersion:1,eventId,receivedAt,collectorId:config.collectorId,environmentId:config.environmentId,workspaceId:config.workspaceId,result:{metadata:{metadataVersion:1,eventId,receivedAt,sourceEvent:'beforeReadFile',sourceVersion:'3.26.16',tool:'read',workspaceRootHashes:[config.sourceRootHash]},counters:{unknownFields:0,sensitiveFields:0,invalidFields:0}}};}
 const publish=async(path:string,e:SourceEnvelopeV1)=>writeFile(join(path,'inbox',e.eventId+'.json'),JSON.stringify(e),{mode:0o600});
 const options={policy:{segmentBytes:2048,historyBytes:4096,records:6,ageMs:86400000},now:()=>start};
+
+test('large histories skip optional checkpoint materialization without shrinking retained or queryable evidence', async t => {
+ const {path,config}=await setup(t),owner=await SpoolIngester.open(path,config,undefined,{now:()=>start});
+ try {
+  for(let offset=0;offset<CHECKPOINT_CACHE_ROWS+1;offset+=32)await owner.journal.appendBatch(Array.from({length:Math.min(32,CHECKPOINT_CACHE_ROWS+1-offset)},()=>envelope(config)));
+  let projected=0;assert.equal(await owner.checkpoints.save(owner.journal.records,config.policyId!,record=>{projected++;return normalizeJournalRecord(record);}),false);
+  assert.equal(projected,0);assert.equal(await owner.checkpoints.load(owner.journal.records,config.policyId!),undefined);
+  assert.equal(owner.journal.status().retainedRecords,CHECKPOINT_CACHE_ROWS+1);assert.equal((await owner.journal.readHistory()).length,CHECKPOINT_CACHE_ROWS+1);
+  await assert.rejects(access(join(path,'projection-checkpoint.json')));
+ } finally {await owner.close();}
+});
 test('size/count retention prunes whole segments, keeps monotonic sequences and deduplicates a committed retired retry after restart',async t=>{
  const {path,config}=await setup(t);let owner=await SpoolIngester.open(path,config,undefined,options);const events=Array.from({length:16},()=>envelope(config));
  for(const e of events){await publish(path,e);await owner.scan();}
@@ -49,6 +61,24 @@ test('projection checkpoints bind schema, policy, sequence and source digests; c
  t.diagnostic(`3-record measured cold replay ${coldMs.toFixed(2)} ms; validated checkpoint load/replay ${warmMs.toFixed(2)} ms. This is a smoke sample, not a performance claim.`);
  assert.equal(await owner.checkpoints.load(owner.journal.records,'a'.repeat(64)),undefined);await appendFile(join(path,'projection-checkpoint.json'),'BROKEN');assert.equal(await owner.checkpoints.load(owner.journal.records,config.policyId!),undefined);
  }finally{await owner.close();}
+});
+
+test('full retired-identity capacity refuses pruning before changing committed history and preserves exact old retries', async t => {
+ const {path,config}=await setup(t),policy={segmentBytes:1024,historyBytes:4096,records:2,ageMs:86400000,tombstones:1};
+ const owner=await SpoolIngester.open(path,config,undefined,{policy,now:()=>start});
+ const events=Array.from({length:4},()=>envelope(config));
+ try {
+  for(const event of events.slice(0,3))await owner.journal.append(event);
+  assert.equal(owner.journal.status().retiredIdentities,1);
+  const before=await readFile(join(path,'journal/retention.json'));
+  await assert.rejects(owner.journal.append(events[3]!),/retention-dedup-limit/);
+  assert.deepEqual(await readFile(join(path,'journal/retention.json')),before);
+  assert.equal(owner.journal.status().nextSequence,4);
+  const retry=await owner.journal.append(events[0]!);assert.equal(retry.added,false);assert.equal(retry.record?.ingestSequence,1);
+ } finally {await owner.close();}
+ const reopened=await SpoolIngester.open(path,config,undefined,{policy,now:()=>start});
+ try {assert.equal(reopened.journal.status().retiredIdentities,1);assert.equal(reopened.journal.status().retainedRecords,2);}
+ finally {await reopened.close();}
 });
 test('retention invalidates old projection/checkpoint staging before deleting source segments',async t=>{
  const {path,config}=await setup(t);let now=start;const owner=await SpoolIngester.open(path,config,undefined,{...options,now:()=>now});try{

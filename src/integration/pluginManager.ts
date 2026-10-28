@@ -397,12 +397,12 @@ export class PluginManager {
     if (this.ingester && cleanup === 'removed') await removeHookOwnership(this.options.storage, () => this.ingester!.assertOwner());
     this.refresh();
     if (this.ingester && this.policy) {
-      await this.ingester.checkpoints.save(this.ingester.journal.records, this.policy.policyId, record => {
+      const saved = await this.ingester.checkpoints.save(this.ingester.journal.records, this.policy.policyId, record => {
         const metadata = record.envelope.result.metadata;
         return normalizeJournalRecord(metadata?.pathHash && !this.policy!.allowedPathHashes.includes(metadata.pathHash)
           ? { ...record, envelope: { ...record.envelope, result: { ...record.envelope.result, counters: { ...record.envelope.result.counters, privacy: 'excluded-path' } } } } : record);
       });
-      this.checkpointState = 'written';
+      this.checkpointState = saved ? 'written' : 'not-written-capacity-or-coverage';
     }
     await this.ingester?.close();
     this.ingester = undefined;

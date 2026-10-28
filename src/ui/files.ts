@@ -6,8 +6,9 @@ import { conversationKey } from '../core/identity';
 import { conversationNodes } from './conversations';
 import { scopeLabel } from './fileProjection';
 import { activityKey, type ActivityViewState } from './viewState';
+import {visibleDetailRows, VIEW_PAGE_ROWS} from './paging';
 export interface ActivityNode {
-  kind: 'session' | 'file' | 'message' | 'child' | 'tool' | 'local-group' | 'local' | 'root' | 'file-group' | 'activity';
+  kind: 'session' | 'file' | 'message' | 'child' | 'tool' | 'local-group' | 'local' | 'root' | 'file-group' | 'activity' | 'activity-page';
   id: string;
   label: string;
   description: string;
@@ -57,11 +58,13 @@ export class FilesTree implements vscode.TreeDataProvider<ActivityNode>, vscode.
   private capture: ((clockOnly?:boolean) => void) | undefined;
   private cachedRoots:{expiresAt:number;roots:ActivityNode[]}|undefined;
   private lastClockRefresh = Date.now();
+  private sessionCount = 0;
+  get clockRefreshMs(): number { return this.manager.evidence.size > VIEW_PAGE_ROWS ? 60000 : 10000; }
   constructor(private readonly manager: PluginManager, private readonly targets: FixtureTargets, readonly display?: ActivityViewState, private readonly visible:()=>boolean = ()=>true) {
     this.timer = setInterval(() => {
-      this.display?.tick(Date.now());
+      const timeFilterChanged = this.display?.tick(Date.now()) ?? false;
       if (!this.cachedRoots || Date.now() >= this.cachedRoots.expiresAt) this.refresh();
-      else if (this.visible() && Date.now() - this.lastClockRefresh >= 10000) {
+      else if (timeFilterChanged || (this.visible() && Date.now() - this.lastClockRefresh >= this.clockRefreshMs)) {
         this.lastClockRefresh = Date.now(); this.capture?.(true);
         if (!this.display?.frozen) this.changed.fire(undefined);
       }
@@ -72,12 +75,12 @@ export class FilesTree implements vscode.TreeDataProvider<ActivityNode>, vscode.
   refresh(force = false): void { this.lastClockRefresh=Date.now();this.cachedRoots=undefined;this.capture?.(); if (force || !this.display?.frozen) this.changed.fire(undefined); }
   getChildren(node?: ActivityNode): ActivityNode[] {
     if (node)
-      return node.children ?? [];
+      return visibleDetailRows(node.children ?? []);
     return this.display ? this.display.roots() : this.liveRoots();
   }
   liveRoots(): ActivityNode[] {
     const now = Date.now(); if(this.cachedRoots)return this.cachedRoots.roots;
-    const snapshot = this.manager.store.snapshot();
+    const snapshot = this.manager.store.viewSnapshot();
     let expiresAt = Infinity;
     for (const operation of snapshot.operations) if (operation.liveState === 'recent-request') {
       for (const id of operation.eventIds) {
@@ -116,6 +119,7 @@ export class FilesTree implements vscode.TreeDataProvider<ActivityNode>, vscode.
       if (first) group.tooltip = [group.tooltip, scopeLabel(first)].filter(Boolean).join('\n');
     }
     const roots: ActivityNode[] = [...groups.values()];
+    this.sessionCount = groups.size;
     if (!roots.length) roots.push({ kind: 'message', id: 'empty', label: this.manager.enabled ? 'Waiting for native read/edit activity' : 'Collection is off', description: 'Invented fixture workspace only' });
     const local = this.manager.observations.snapshot(), coverage = this.manager.observationStatus();
     const labels: Record<LocalObservation['kind'], string> = {
@@ -133,7 +137,8 @@ export class FilesTree implements vscode.TreeDataProvider<ActivityNode>, vscode.
     this.cachedRoots={expiresAt,roots};return roots;
   }
   getTreeItem(node: ActivityNode): vscode.TreeItem {
-    const item = new vscode.TreeItem(node.label, node.children ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None);
+    const collapsed = (node.children?.length ?? 0) > VIEW_PAGE_ROWS || (node.kind === 'session' && this.sessionCount > 2 && !this.display?.activeFilters.conversation);
+    const item = new vscode.TreeItem(node.label, node.children ? collapsed ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None);
     item.id = node.id;
     const receivedAt = node.observation?.event.receivedAt ?? node.localObservation?.event.receivedAt;
     const description = receivedAt ? node.description.replace(/\b\d+[smh] ago\b/,age(receivedAt,this.display?.at ?? Date.now())) : node.description;

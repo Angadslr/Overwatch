@@ -1,0 +1,83 @@
+{
+  "recordedAt": "2026-10-27T04:21:44.736Z",
+  "baselineCommit": "f893bda",
+  "scope": "shared bounded journal scanner for startup validation and history pagination; prior secure-read changes retained",
+  "nativeAgentDelivery": false,
+  "checks": {
+    "strictTypesContractsBuild": true,
+    "unit": {
+      "tests": 190,
+      "pass": 190,
+      "fail": 0,
+      "skipped": 0
+    },
+    "process": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "installedEditor": {
+      "passed": true,
+      "checks": 40,
+      "editorApiVersion": "1.128.0",
+      "extensionHostNode": "24.19.0"
+    },
+    "go": "source unchanged; compiled helper exercised by native process and installed-host suites"
+  },
+  "initialUnit": {
+    "tests": 190,
+    "pass": 189,
+    "fail": 1,
+    "skipped": 0,
+    "failure": "polling test observed accepted before ready-file acknowledgment; fixed by awaiting collector close before the empty-inbox assertion"
+  },
+  "resourceQualification": {
+    "passed": false,
+    "nearCap": {
+      "records": 97280,
+      "bytes": 104856734,
+      "projectedEvidence": 5000,
+      "controlIncrementalRssBytes": 117555200,
+      "incrementalRssBytes": 111869952,
+      "controlIncrementalExternalBytes": 17527071,
+      "incrementalExternalBytes": 9417116,
+      "targetBytes": 78643200
+    },
+    "installed": "CPU, burst latency and shared-host memory not remeasured; preceding failing measurements remain open"
+  },
+  "decisions": [
+    "Use one 64 KiB scanner with bounded partial-line assembly; callbacks consume borrowed bytes synchronously.",
+    "Early page completion still verifies file stability and closes its descriptor.",
+    "Schema/scope/sequence/digest checks include the skipped prefix; startup alone can repair a torn final suffix.",
+    "Angad prioritizes file attribution and missing-activity diagnosis in one or two parent conversations with subagents; current child-to-tool attribution remains unavailable."
+  ],
+  "limitations": [
+    "Sequential control/candidate fixtures have equivalent record counts and byte sizes but newly generated IDs and timestamps. One comparison does not establish a stable RSS bound.",
+    "T22/G3/T24 remain open; no forced GC during measured intervals or reduced budgets.",
+    "No ordinary native Agent action or T25 pilot was performed."
+  ],
+  "evidence": [
+    "docs/t22-stream-history-control.json",
+    "docs/t22-stream-history-candidate.json"
+  ],
+  "cleanup": {
+    "run": "t22-stream-history",
+    "publisherEnabled": false,
+    "brokerConfigured": false,
+    "hooksPresent": false,
+    "leasePresent": false,
+    "resetIntentPresent": false,
+    "pendingInboxEntries": 0
+  },
+  "sha256": {
+    "src/transport/journal.ts": "57530edf1bd1760fcd4ea12a198e814f513ad8bd8da5a0cbe96f3647b569dd6e",
+    "src/transport/secureFs.ts": "1067850b85379a9f05a782f7e4c78416c9a815588be994de86e4799e144689d5",
+    "tests/unit/journal-stream.test.ts": "58badbeebc67ae9730a06dbd723a925a1812a1b497625a04f85a447ac43e419f",
+    "tests/unit/transport.test.ts": "b2c2e9bcc043c2af5a3083e7da3c274adf0422b689c60fa5327daf011ff4308f",
+    "dist/extension.cjs": "e4f5509197506af9ce6faf4f09a2fb1f9beaeae1b25abe9f70b7008bc5b9bd46",
+    "dist/cursor-supervision-hook": "299bb375c99488c7ee2526d94475a6dddacc0f468efdf31df675ae357224336b",
+    ".local/t22-stream-history-control.cjs": "d168104910ddb01b04ac82cd5ea81aebb294eecc793b5a90cd96586587d222d1",
+    ".local/t22-history-manager.cjs": "6293c4db7dc6d2338115428e2b64f7e4d67546e5120997d45e64491b6b92382a"
+  }
+}

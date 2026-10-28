@@ -48,33 +48,50 @@ export class ActivityViewState {
   private held: Frame | undefined;
   private previous = new Set<string>();
   private filters: ActivityFilters = {};
+  private projection: {frame: Frame; filters: ActivityFilters; at: number; entries: ActivityEntry[]; roots?: ActivityNode[]} | undefined;
   pending = 0;
   resumed = 0;
   get frozen(): boolean { return this.held !== undefined; }
   get at(): number { return this.frame.at; }
   get activeFilters(): ActivityFilters { return { ...this.filters }; }
   private get frame(): Frame { return this.held ?? this.live; }
-  tick(now: number): void { this.live.at = now; }
+  tick(now: number): boolean {
+    const previous = !this.frozen && this.filters.withinMs !== undefined ? this.entries() : undefined;
+    this.live.at = now;
+    if (!previous) return false;
+    const next = this.entries();
+    return previous.length !== next.length || previous.some((entry, index) => entry.key !== next[index]?.key);
+  }
   update(entries: ActivityEntry[], roots: ActivityNode[], now: number): void {
+    this.projection = undefined;
     if (this.frozen) this.pending += entries.filter(e => !this.previous.has(e.key)).length;
     this.previous = new Set(entries.map(e => e.key));
     const ordered = [...entries].sort((a, b) => a.event.receivedAt.localeCompare(b.event.receivedAt) || a.key.localeCompare(b.key));
     this.live = { entries: ordered.slice(-DISPLAY_LIMIT), roots, at: now, omitted: Math.max(0, ordered.length - DISPLAY_LIMIT) };
   }
-  setFilters(input: unknown): void { this.filters = checkedFilters(input); }
+  setFilters(input: unknown): void { const filters = checkedFilters(input);this.projection = undefined;this.filters = filters; }
   toggleFreeze(): boolean {
+    this.projection = undefined;
     if (this.held) { this.held = undefined; this.resumed = this.pending; this.pending = 0; }
     else { this.held = clone(this.live); this.pending = 0; this.resumed = 0; }
     return this.frozen;
   }
   reset(): void {
+    this.projection = undefined;
     this.live = { entries: [], roots: [], at: 0, omitted: 0 }; this.held = undefined;
     this.previous.clear(); this.pending = 0; this.resumed = 0;
   }
-  entries(): ActivityEntry[] { return this.frame.entries.filter(e => matchesActivity(e, this.filters, this.frame.at)); }
+  private matching(): NonNullable<ActivityViewState['projection']> {
+    const frame = this.frame, previous = this.projection;
+    if (previous?.frame === frame && previous.filters === this.filters && (this.filters.withinMs === undefined || previous.at === frame.at)) return previous;
+    return this.projection = {frame, filters: this.filters, at: frame.at, entries: frame.entries.filter(e => matchesActivity(e, this.filters, frame.at))};
+  }
+  entries(): ActivityEntry[] { return this.matching().entries; }
   find(key: string): ActivityEntry | undefined { return this.entries().find(e => e.key === key); }
   roots(): ActivityNode[] {
-    const entries = this.entries();
+    const projection = this.matching();
+    if (projection.roots) return projection.roots;
+    const entries = projection.entries;
     const matched = new Map(entries.map(e => [activityKey(e.event), e]));
     const byOperation = new Map<string, ActivityEntry[]>();
     const conversations = new Set<string>();
@@ -109,7 +126,7 @@ export class ActivityViewState {
           : `${children.filter(n => n.localObservation).length} matching local observations · coverage partial`, children });
       }
     }
-    return roots.length ? roots : [{ kind: 'message', id: 'display-empty', label: 'No matching activity', description: active ? 'Clear filters to show retained events' : 'Enable collection or wait for source/local observations' }];
+    return projection.roots = roots.length ? roots : [{ kind: 'message', id: 'display-empty', label: 'No matching activity', description: active ? 'Clear filters to show retained events' : 'Enable collection or wait for source/local observations' }];
   }
   status(collecting = true): string {
     const count = this.entries().length;

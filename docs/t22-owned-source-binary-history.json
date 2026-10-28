@@ -1,0 +1,46 @@
+{
+  "recordedAt": "2026-10-27T20:30:14.295Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "records": 97280,
+  "bytes": 104856734,
+  "segments": 21,
+  "openAndFirstProjectionMs": 2448.4045419999998,
+  "completeRecentProjectionMs": 7291.081,
+  "sourceAndProjectionCpuMs": 1232.541,
+  "incrementalRssBytes": 71958528,
+  "incrementalHeapBytes": 43460512,
+  "incrementalExternalBytes": 10059250,
+  "incrementalArrayBufferBytes": 10039584,
+  "settledIncrementalRssBytes": 71958528,
+  "peakObservedRssBytes": 149716992,
+  "bufferedRecords": 5000,
+  "projectedEvidence": 5000,
+  "stagedLoadingVisible": true,
+  "statuses": [
+    "Loading retained history · checking journal",
+    "Loading retained history · 200/5000 projected · live state unknown",
+    "Loading retained history · 400/5000 projected · live state unknown"
+  ],
+  "history": {
+    "firstSequence": 1,
+    "nextSequence": 97281,
+    "retainedRecords": 97280,
+    "bufferedRecords": 5000,
+    "bufferedFirstSequence": 92281,
+    "bytes": 104856734,
+    "retiredIdentities": 0,
+    "expiredBefore": "1970-01-01T00:00:00.000Z"
+  },
+  "budgetBytes": 78643200,
+  "memoryBudgetPassed": true,
+  "limitations": [
+    "Synthetic near-cap source journal is generated outside the measured reader process.",
+    "A fresh reader validates all retained records and completes the recent 5,000-record projection. Older payloads remain on disk.",
+    "RSS/heap are sampled reader-process measurements, not the installed shared extension host.",
+    "An explicit garbage collection precedes the reader baseline; no forced collection is used to reduce measured peaks."
+  ]
+}

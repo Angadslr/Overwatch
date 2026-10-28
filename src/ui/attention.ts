@@ -4,7 +4,7 @@ import { overlapAdvisories } from '../core/overlap';
 import { fromOverlap, type AttentionCandidate, type AttentionItem } from '../core/attention';
 
 export function attentionCandidates(manager: PluginManager, now: number): AttentionCandidate[] {
-  const snapshot = manager.store.snapshot(), observations = [...manager.evidence.values()];
+  const snapshot = manager.store.viewSnapshot(), observations = [...manager.evidence.values()];
   const overlap = overlapAdvisories(observations, snapshot.operations, now, 30000, manager.exclusions);
   const items: AttentionCandidate[] = overlap.advisories.map(fromOverlap);
   for (const operation of snapshot.operations.filter(o => ['ambiguous', 'completion-not-observed', 'unknown-after-reload'].includes(o.liveState)).slice(-100)) {

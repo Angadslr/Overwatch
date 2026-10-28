@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-27T17:45:05.695Z",
+  "passed": true,
+  "nativeAgentDelivery": false,
+  "editorApiVersion": "1.128.0",
+  "node": "24.19.0",
+  "checks": [
+    "private candidate is installed outside the source checkout with executable helper",
+    "installed candidate enables and passes diagnostic helper/collector self-check",
+    "synthetic read/edit inputs traverse installed launchers into evidence with unknown attribution",
+    "disable stops publisher, removes owned hooks/lease and leaves current inbox empty"
+  ],
+  "limitations": [
+    "Separate development test driver exercises the installed target extension bytes.",
+    "Synthetic hook input and diagnostic self-check do not establish ordinary native Agent delivery or resource qualification."
+  ],
+  "run": "/Users/angadsrivastava/Documents/Overwatch/.local/t24-installed-S1OZmW",
+  "installedExtension": "/Users/angadsrivastava/Documents/Overwatch/.local/t24-installed-S1OZmW/extensions/angad-local.overwatch-native-probe-0.0.4"
+}

@@ -14,6 +14,15 @@ export async function verifyActivity(api:SupervisionApi,root:string,extensionPat
  try {
  assert.equal(vscode.workspace.getConfiguration('agentSupervision').get('followLatest'),false);
  const before=api.display.entries().length;
+ const activityRoots=api.activityTree.getChildren();
+ if(before>100){
+  assert.ok(activityRoots.every(node=>node.kind==='activity-page'));
+  const paged=activityRoots.flatMap(node=>api.activityTree!.getChildren(node));
+  assert.equal(paged.length,before);assert.ok(activityRoots.every(node=>api.activityTree!.getChildren(node).length<=100));
+  assert.deepEqual(paged.map(node=>node.id),api.display.entries().map(entry=>entry.key));
+  const latest=api.activityTree.latestNode();assert.equal(latest?.id,api.display.entries().at(-1)?.key);assert.ok(latest&&api.activityTree.getParent(latest));
+ }
+ checks.push('large Activity history has bounded expandable pages, exact chronology and a reachable latest event without dropping retained evidence');
  const read=api.display.entries().find(e=>e.label==='read.txt'&&e.event.phase==='completed');assert.ok(read);
  stage='inspect';
  const inspect=()=>vscode.commands.executeCommand<{ok:boolean;availability:string}>('overwatch.supervision.inspectActivity',read.key);

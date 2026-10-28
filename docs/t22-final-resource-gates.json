@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-10-27T17:44:52.984Z",
+  "scope": "resource gates only",
+  "passed": false,
+  "gates": [
+    {
+      "id": "qualified-platform",
+      "passed": true
+    },
+    {
+      "id": "normal-sample-count",
+      "passed": true
+    },
+    {
+      "id": "normal-helper-p95-ms",
+      "value": 39.376333,
+      "limit": 50,
+      "passed": true
+    },
+    {
+      "id": "provider-row-p95-ms",
+      "value": 215.634458,
+      "limit": 1000,
+      "passed": true
+    },
+    {
+      "id": "complete-burst",
+      "passed": true
+    },
+    {
+      "id": "burst-helper-p95-ms",
+      "value": 60.538625,
+      "limit": 50,
+      "passed": false
+    },
+    {
+      "id": "idle-controls",
+      "passed": true
+    },
+    {
+      "id": "loaded-idle-cpu-percent",
+      "value": 3.734415319423353,
+      "limit": 1,
+      "passed": false
+    },
+    {
+      "id": "installed-incremental-rss-bytes",
+      "value": 230752256,
+      "limit": 78643200,
+      "passed": false
+    },
+    {
+      "id": "near-cap-history",
+      "passed": true
+    },
+    {
+      "id": "responsive-history-replay",
+      "passed": true
+    },
+    {
+      "id": "near-cap-incremental-rss-bytes",
+      "value": 107986944,
+      "limit": 78643200,
+      "passed": false
+    }
+  ],
+  "inputs": {
+    "editorSha256": "666517b51be07324cafbb8e1a2777a41c0879820990fc66a7a1e50c18403582a",
+    "historySha256": "7d3f215c41dbf004a4f7bc53446baab1585ffd39572b31878c8ebf171e6f97ee"
+  },
+  "limitations": [
+    "Input hashes bind these measured reports, not the current source checkout. Verify implementation hashes separately.",
+    "Passing resource gates does not establish ordinary native delivery, failure containment, privacy, clean installation or user-pilot acceptance."
+  ]
+}

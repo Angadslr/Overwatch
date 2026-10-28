@@ -2,6 +2,8 @@
 
 Prepared for Angad, Gemini 3.8 High and Claude Opus 4.6 Thinking. Run against the checkout being reviewed; historical results are not evidence for later edits.
 
+**Current 27 October continuation:** Angad requested a GPT-6.1 High/Opus handoff where needed. Use [the current investigation and exact reproduction commands](T22-T24-HIGH-REVIEW.md), [final verification](t22-final-verification.json) and [resource-gate failures](t22-final-resource-gates.json). Functional regression passes, but T22/G3 remain open on observed resource failures. Private engineering-candidate packaging and isolated synthetic smoke do not close qualified T24 or the T25 user pilot.
+
 The repository checkpoint now includes the previously untracked T16 implementation and tests. Confirm the branch, working directory and `git status --short` before selecting a next task; older committed snapshots lack later completed work. Current task state is at the top of `HANDOFF.md`; older "next" statements below it are historical. Historical verification reports retain the HEAD and working-tree scope from their measurement time.
 
 ## Roles and scope
@@ -57,6 +59,7 @@ For Go race/vet checks, select the same executable/cache as `scripts/go-helper.m
 | SIGKILL after append/batch sync before acknowledgment and after retention metadata before unlink | `tests/integration/transport.test.mjs` |
 | Rolling fixed-length tail still projects fresh records; replay remains live-unknown | `tests/unit/supervision.test.ts` |
 | Scope-partitioned deduplication | `tests/unit/scoped-events.test.ts`, reducer/lifecycle tests |
+| History-page read buffers, split records, early-return file mutation, prefix digests and read-only torn-tail refusal | `tests/unit/journal-stream.test.ts`; compare `docs/t22-stream-history-control.json` and `docs/t22-stream-history-candidate.json` without treating one comparison as a stable RSS bound |
 | Healthy watcher backoff, immediate publication wake, polling-only collection, ownership loss and substitution | `tests/unit/transport.test.ts` |
 | Frozen time, clock-only filter expiry and unchanged incoming-event counts | `tests/unit/view-state.test.ts` |
 | Privacy, independent file observations and redacted reports | `tests/unit/privacy.test.ts`, `tests/unit/file-observations.test.ts`, `tests/integration/transport.test.mjs`, `tests/extension/views.ts` |
@@ -64,6 +67,9 @@ For Go race/vet checks, select the same executable/cache as `scripts/go-helper.m
 | Scoped history reset, corrupt history, selected/unselected exports, multiple roots, interruption and old producer fencing | `tests/unit/history-reset.test.ts`, `tests/integration/history-reset.test.mjs`, `tests/extension/maintenance.ts` |
 | Hook preservation and passive/owned windows | `tests/unit/hook-config.test.ts`, `tests/unit/workspace-lease.test.ts`, `tests/integration/ownership.test.mjs` |
 | Actual editor views, focus, filtering, badge expiry, privacy invalidation and maintenance | `tests/extension/run.ts` and its imported suites |
+| Resource qualification fails on latency/CPU/memory and missing/nonfinite/incomplete evidence | `tests/integration/resource-gates.test.mjs`, `scripts/qualify-resources.mjs` |
+| Candidate allowlist, qualification disclosure, development-data rejection, helper executable mode/architecture | `tests/integration/candidate-inspection.test.mjs`, `scripts/verify-candidate.mjs` |
+| Isolated installation and synthetic read/edit/self-check/disable using installed candidate bytes | `tests/extension/package-smoke.ts`, `scripts/test-candidate.mjs`; ordinary native Agent smoke remains separate |
 
 ## Required broker acceptance cases
 
@@ -184,3 +190,10 @@ Required verification:
 | S07 | Re-run near-cap memory and installed load sequentially. Preserve raw CPU/memory controls, all 2,041 expected events, and unchanged budget failures. No forced GC during measured peaks. |
 
 Review snapshot ownership, recursive freezing, input aliasing and derived-evidence copies. A schema-valid but merely caller-frozen object is not a trusted snapshot. Do not substitute successful functional tests for resource-budget qualification.
+
+
+## Current T22 checkpoint — 27 October, 3:50 pm wrap-up
+
+Use [current qualification and remaining tests](T22-T24-HIGH-REVIEW.md) before the historical reports above. Current functional coverage is 213 unit / 35 process / 41 installed checks with no skips, plus uncached Go race tests and vet. Native final-build read/edit and a Read with the copied helper unavailable completed. Helper restored and collection disabled. History memory and full-capacity refusal pass; installed raw CPU and RSS fail. Required next tests are phase-specific installed allocation/CPU attribution, unchanged-build repeated unprofiled qualification after a demonstrated fix, B01–B16 interleaving coverage audit, then exact-package lifecycle qualification. No High/Opus review, qualified T24 release or Angad T25 pilot is claimed.
+
+The final diagnostic allocation capture completed; see `t22-current-allocation-diagnostic.json` for sampled sites and the current handoff for interpretation. It is excluded from resource qualification. Repeated file projection/scoped-key construction is an evidenced next investigation target. Current verification records cleanup of all four final installed fixtures and the native smoke.

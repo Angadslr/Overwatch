@@ -1,0 +1,47 @@
+{
+  "recordedAt": "2026-10-27T22:40:58.080Z",
+  "cursorBuild": "3.26.16",
+  "platform": "darwin-arm64",
+  "fixture": "/Users/angadsrivastava/Documents/Overwatch/.local/t22-native-AnSw1h/fixture with spaces",
+  "implementation": {
+    "package.json": "9231395137901fb392ac47ca577c6a037e30ca56dba8a530f19cd3d6acdcbd2b",
+    "assets/supervision.svg": "be27eff9222a7d10fcb33ed6752ae9546e95243df5735fce1d58e20f8e553fa5",
+    "dist/extension.cjs": "59cead44b635a3b1099dcf281fdcecd6d9dc819137d4b5d8433b09b48acd5bc3",
+    "dist/cursor-supervision-hook": "1db897b5d21036204475b9cb8d91a500f9127ed55aca0519b804de1105fb944a"
+  },
+  "nativeDelivery": true,
+  "actions": [
+    {
+      "action": "ordinary Read read.txt and native edit edit.txt cobalt to teal",
+      "observed": "Native UI completed in 3 seconds; source rows rendered with unverified file actor; disk fixture contains teal.",
+      "passed": true
+    },
+    {
+      "action": "ordinary Read shared.txt with copied helper renamed out of place",
+      "observed": "Native UI completed in 2 seconds and returned invented indigo contents; no additional journal events observed.",
+      "passed": true
+    }
+  ],
+  "sourceEvents": 10,
+  "sourceEventKinds": [
+    "preToolUse",
+    "beforeReadFile",
+    "postToolUse",
+    "afterFileEdit",
+    "stop"
+  ],
+  "cleanup": {
+    "publisherOff": true,
+    "brokerAbsent": true,
+    "hooksAbsent": true,
+    "leaseAbsent": true,
+    "resetAbsent": true,
+    "pendingInboxFiles": 0,
+    "helperRestored": true
+  },
+  "limitations": [
+    "Completion durations are native task durations, not isolated hook overhead.",
+    "No automatic missing-helper gap alarm was observed; UI retained historical source evidence and partial coverage. A missing helper cannot publish its own loss marker.",
+    "This tests a copied final development bundle, not the older VSIX or T25 pilot."
+  ]
+}

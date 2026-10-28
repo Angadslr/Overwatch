@@ -1,0 +1,137 @@
+{
+  "recordedAt": "2026-10-27T22:37:58.710Z",
+  "scope": "T22 resource suite: installed load, cold history, full retired capacity and warm reload",
+  "passed": false,
+  "gates": [
+    {
+      "id": "unprofiled-measurements",
+      "passed": true
+    },
+    {
+      "id": "qualified-platform",
+      "passed": true
+    },
+    {
+      "id": "normal-sample-count",
+      "passed": true
+    },
+    {
+      "id": "normal-helper-p95-ms",
+      "value": 33.721708,
+      "limit": 50,
+      "passed": true
+    },
+    {
+      "id": "provider-row-p95-ms",
+      "value": 236.745083,
+      "limit": 1000,
+      "passed": true
+    },
+    {
+      "id": "complete-burst",
+      "passed": true
+    },
+    {
+      "id": "burst-helper-p95-ms",
+      "value": 31.061458,
+      "limit": 50,
+      "passed": true
+    },
+    {
+      "id": "idle-controls",
+      "passed": true
+    },
+    {
+      "id": "loaded-idle-cpu-percent",
+      "value": 1.386235547524052,
+      "limit": 1,
+      "passed": false
+    },
+    {
+      "id": "installed-incremental-rss-bytes",
+      "value": 123420672,
+      "limit": 78643200,
+      "passed": false
+    },
+    {
+      "id": "near-cap-history",
+      "passed": true
+    },
+    {
+      "id": "responsive-history-replay",
+      "passed": true
+    },
+    {
+      "id": "near-cap-incremental-rss-bytes",
+      "value": 56131584,
+      "limit": 78643200,
+      "passed": true
+    },
+    {
+      "id": "retired-cap:unprofiled-measurements",
+      "passed": true
+    },
+    {
+      "id": "retired-cap:qualified-platform",
+      "passed": true
+    },
+    {
+      "id": "retired-cap:near-cap-history",
+      "passed": true
+    },
+    {
+      "id": "retired-cap:responsive-history-replay",
+      "passed": true
+    },
+    {
+      "id": "retired-cap:near-cap-incremental-rss-bytes",
+      "value": 69926912,
+      "limit": 78643200,
+      "passed": true
+    },
+    {
+      "id": "retired-cap:full-retired-cap",
+      "passed": true
+    },
+    {
+      "id": "warm-reload:unprofiled-measurements",
+      "passed": true
+    },
+    {
+      "id": "warm-reload:qualified-platform",
+      "passed": true
+    },
+    {
+      "id": "warm-reload:near-cap-history",
+      "passed": true
+    },
+    {
+      "id": "warm-reload:responsive-history-replay",
+      "passed": true
+    },
+    {
+      "id": "warm-reload:near-cap-incremental-rss-bytes",
+      "value": 69550080,
+      "limit": 78643200,
+      "passed": true
+    },
+    {
+      "id": "warm-reload:full-retired-cap",
+      "passed": true
+    },
+    {
+      "id": "warm-reload:observed-reload",
+      "passed": true
+    }
+  ],
+  "inputs": {
+    "editorSha256": "324f74516b5d6335446881683591d6c42fbac926e53ab4dba6554387af5629b3",
+    "historySha256": "4a9e3e51e36d9eeb49d19e00cca9ad781e24290b2f114f15c46c976104b6639d",
+    "retiredSha256": "20f73b3ec6d11d23b04ae832983dd81b7c56f2642448ed26dd652ed87af70c90",
+    "warmSha256": "aebc9a0bcd9f54d61e7520edad72e3b3d84e7da4db94c23b11800182cabbaf0c"
+  },
+  "limitations": [
+    "Input hashes bind these measured reports, not the current source checkout. Verify implementation hashes separately.",
+    "Passing resource gates does not establish ordinary native delivery, failure containment, privacy, clean installation or user-pilot acceptance."
+  ]
+}

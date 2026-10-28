@@ -6,7 +6,8 @@ import type { SourceJournalRecord } from './journal';
 import { SecureDirectory } from './secureFs';
 import { atomicPrivateJson, removePrivateFile } from './retention';
 export const CHECKPOINT_ROWS = 5000;
-const MAX_CHECKPOINT_BYTES = 16 * 1024 * 1024;
+export const CHECKPOINT_CACHE_ROWS = 500;
+const MAX_CHECKPOINT_BYTES = 1024 * 1024;
 interface ProjectionCheckpoint {
   checkpointVersion: 1; projectionVersion: 1; policyId: string; firstSequence: number; throughSequence: number; sourceDigest: string; projectionDigest: string; entries: FileObservation[];
 }
@@ -25,6 +26,7 @@ export class ProjectionCheckpoints {
     } } finally { await listing.close(); }
   }
   async load(records: readonly SourceJournalRecord[], policyId: string): Promise<Map<number, FileObservation> | undefined> {
+    if (records.length > CHECKPOINT_CACHE_ROWS) return undefined;
     try {
       const tail = records.slice(-CHECKPOINT_ROWS), read = await this.directory.read('projection-checkpoint.json', MAX_CHECKPOINT_BYTES);
       const c = JSON.parse(read.bytes.toString('utf8')) as ProjectionCheckpoint;
@@ -43,6 +45,9 @@ export class ProjectionCheckpoints {
     } catch { return undefined; }
   }
   async save(records: readonly SourceJournalRecord[], policyId: string, project: (record: SourceJournalRecord) => FileObservation | undefined): Promise<boolean> {
+    // This is an optional accelerator, not retained history. Large histories
+    // use bounded authoritative replay instead of materializing a large cache.
+    if (records.length > CHECKPOINT_CACHE_ROWS) {await this.invalidate();return false;}
     const tail = records.slice(-CHECKPOINT_ROWS), entries = tail.map(project);
     if (entries.some(e => !e)) { await this.invalidate(); return false; }
     const value: ProjectionCheckpoint = { checkpointVersion: 1, projectionVersion: 1, policyId, firstSequence: tail[0]?.ingestSequence ?? 0, throughSequence: tail.at(-1)?.ingestSequence ?? 0,

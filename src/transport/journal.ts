@@ -2,10 +2,11 @@ import { constants } from 'node:fs';
 import { open, lstat, opendir, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { SecureDirectory, sameFile } from './secureFs';
-import { MAX_SOURCE_BYTES, parseSource, validateSource } from './sourceValidation';
+import { MAX_SOURCE_BYTES, snapshotSource, validateSource, parseJournalSnapshot } from './sourceValidation';
 import type { SourceEnvelopeV1 } from './sourceContracts';
 import {JournalIndex} from './journalIndex';
-import { atomicPrivateJson, envelopeDigest, historyPolicy, parseRetention, removePrivateFile, type HistoryPolicy, type RetentionManifest, type RetiredIdentity } from './retention';
+import { envelopeDigest, historyPolicy, removePrivateFile, type HistoryPolicy, type RetentionManifest, type RetiredIdentity } from './retention';
+import {readRetentionStream, writeRetentionStream} from './retentionStream';
 export interface SourceJournalRecord { journalVersion: 1; ingestSequence: number; envelope: SourceEnvelopeV1 }
 export interface JournalOptions { policy?: Partial<HistoryPolicy>; now?: () => number; beforePrune?: () => Promise<void>; afterRetentionCommit?: () => Promise<void> }
 interface Segment { bytes: number; records: number[] }
@@ -16,6 +17,7 @@ export type AppendResult = { added: true; record: SourceJournalRecord; expired?:
 export class Journal {
   readonly records: SourceJournalRecord[] = [];
   private readonly index: JournalIndex;
+  private readonly strings = new Map<string, string>();
   recoveredTail = false;
   revision = 0;
   private segment = 0;
@@ -23,7 +25,7 @@ export class Journal {
   private poisoned = false;
   private nextSequence = 1;
   private readonly segments = new Map<number, Segment>();
-  private readonly retired = new Map<string, RetiredIdentity>();
+  private retired: JournalIndex;
   private manifest: RetentionManifest = { retentionVersion: 1, firstSegment: 0, firstSequence: 1, expiredBefore: '1970-01-01T00:00:00.000Z', retired: [] };
   private readonly policy: HistoryPolicy;
   private readonly now: () => number;
@@ -33,9 +35,12 @@ export class Journal {
   }
   async whenIdle():Promise<void> { await this.writes; }
   constructor(private readonly directory: SecureDirectory, private readonly ownsLease: () => Promise<void>, private readonly acceptScope: (e: SourceEnvelopeV1) => boolean, private readonly options: JournalOptions = {}) {
-    this.policy = historyPolicy(options.policy); this.now = options.now ?? Date.now; this.index = new JournalIndex(this.policy.records);
+    this.policy = historyPolicy(options.policy); this.now = options.now ?? Date.now; this.index = new JournalIndex(this.policy.records);this.retired = new JournalIndex(this.policy.tombstones);
   }
   private name(n: number): string { if (n > 999999) throw new Error('journal-segment-limit'); return `journal-${String(n).padStart(6, '0')}.ndjson`; }
+  private retiredIdentity(id: string): RetiredIdentity | undefined {
+    const slot = this.retired.find(id);return slot === undefined ? undefined : this.retired.retired(slot);
+  }
   status(): { firstSequence: number; nextSequence: number; retainedRecords: number; bufferedRecords: number; bufferedFirstSequence: number; bytes: number; retiredIdentities: number; expiredBefore: string } {
     return { firstSequence: this.manifest.firstSequence, nextSequence: this.nextSequence, retainedRecords: this.index.size, bufferedRecords: this.records.length, bufferedFirstSequence: this.records[0]?.ingestSequence ?? this.nextSequence, bytes: this.totalBytes, retiredIdentities: this.retired.size, expiredBefore: this.manifest.expiredBefore };
   }
@@ -48,12 +53,41 @@ export class Journal {
     if (!sameFile(info, await lstat(join(this.directory.path, name)))) throw new Error('journal-file-changed');
     await unlink(join(this.directory.path, name));
   }
+  /** Callbacks consume borrowed line bytes before the next bounded read. A
+   * false result stops a page early, but never skips the file stability check. */
+  private async scanLines(read: Awaited<ReturnType<SecureDirectory['file']>>, consume: (line: Buffer) => boolean | void): Promise<{completeBytes: number; tornTail: boolean}> {
+    let position = 0, completeBytes = 0, stopped = false;
+    let pending: Buffer = Buffer.alloc(0);
+    const buffer = Buffer.allocUnsafe(64 * 1024);
+    while (position < read.info.size && !stopped) {
+      const result = await read.handle.read(buffer, 0, Math.min(buffer.length, read.info.size - position), position);
+      if (!result.bytesRead) throw new Error('journal-file-changed');
+      position += result.bytesRead;
+      let start = 0;
+      while (start < result.bytesRead) {
+        const end = buffer.indexOf(10, start);
+        if (end < 0 || end >= result.bytesRead) {
+          pending = Buffer.concat([pending, buffer.subarray(start, result.bytesRead)]);
+          if (pending.length > MAX_SOURCE_BYTES + 256) throw new Error('journal-record-too-large');
+          break;
+        }
+        const line = pending.length ? Buffer.concat([pending, buffer.subarray(start, end)]) : buffer.subarray(start, end);
+        if (line.length > MAX_SOURCE_BYTES + 256) throw new Error('journal-record-too-large');
+        completeBytes += line.length + 1;
+        pending = Buffer.alloc(0);
+        if (consume(line) === false) { stopped = true; break; }
+        start = end + 1;
+      }
+    }
+    const after = await read.handle.stat();
+    if (after.size !== read.info.size || after.mtimeMs !== read.info.mtimeMs || after.ctimeMs !== read.info.ctimeMs || after.nlink !== 1) throw new Error('journal-file-changed');
+    await this.directory.guard();
+    return {completeBytes, tornTail: !stopped && pending.length > 0};
+  }
   async load(): Promise<void> {
     await this.ownsLease();
     try {
-      const read = await this.directory.read('retention.json', 24 * 1024 * 1024);
-      this.manifest = parseRetention(JSON.parse(read.bytes.toString('utf8')), this.policy.tombstones);
-      for (const item of this.manifest.retired) this.retired.set(item.id, item);
+      this.manifest = await readRetentionStream(this.directory, this.policy.tombstones, identity => {this.retired.addRetired(identity);});
     } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw new Error('retention-manifest-invalid'); }
     this.nextSequence = this.manifest.firstSequence;
     const listing = await opendir(this.directory.path), numbers: number[] = [];
@@ -83,36 +117,16 @@ export class Journal {
         if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('journal-corrupt');
         const envelope = validateSource(value.envelope);
         if (!envelope || !this.acceptScope(envelope) || value.journalVersion !== 1 || value.ingestSequence !== this.nextSequence ||
-          Object.keys(value).sort().join(',') !== 'envelope,ingestSequence,journalVersion' || this.index.find(envelope.eventId) !== undefined || this.retired.has(envelope.eventId)) throw new Error('journal-corrupt');
+          Object.keys(value).sort().join(',') !== 'envelope,ingestSequence,journalVersion' || this.index.find(envelope.eventId) !== undefined || this.retired.find(envelope.eventId) !== undefined) throw new Error('journal-corrupt');
         if (this.index.size >= this.policy.records) throw new Error('journal-history-limit');
         // Cold validation retains compact identities only. Cycling every old
         // payload through the recent window promotes disposable objects into
         // the long-lived heap before they are evicted.
         segment.records.push(this.index.add(envelope, value.ingestSequence)); this.nextSequence++;
       };
-      let position = 0, completeBytes = 0, pending:Buffer = Buffer.alloc(0);
-      const buffer = Buffer.allocUnsafe(64 * 1024);
       try {
-        while (position < read.info.size) {
-          const result = await read.handle.read(buffer, 0, Math.min(buffer.length, read.info.size - position), position);
-          if (!result.bytesRead) throw new Error('journal-file-changed');
-          position += result.bytesRead;
-          let start = 0;
-          while (start < result.bytesRead) {
-            const end = buffer.indexOf(10, start);
-            if (end < 0 || end >= result.bytesRead) {
-              pending = Buffer.concat([pending, buffer.subarray(start, result.bytesRead)]);
-              if (pending.length > MAX_SOURCE_BYTES + 256) throw new Error('journal-record-too-large');
-              break;
-            }
-            const line = pending.length ? Buffer.concat([pending, buffer.subarray(start, end)]) : buffer.subarray(start, end);
-            consume(line); completeBytes += line.length + 1; pending = Buffer.alloc(0); start = end + 1;
-          }
-        }
-        const after = await read.handle.stat();
-        if (after.size !== read.info.size || after.mtimeMs !== read.info.mtimeMs || after.ctimeMs !== read.info.ctimeMs || after.nlink !== 1) throw new Error('journal-file-changed');
-        await this.directory.guard();
-        if (pending.length) {
+        const {completeBytes, tornTail} = await this.scanLines(read, consume);
+        if (tornTail) {
           if (n !== retained.at(-1)) throw new Error('journal-middle-corruption');
           const { handle, info } = await this.directory.file(this.name(n), constants.O_WRONLY);
           try { if (!sameFile(read.info, info) || info.nlink !== 1) throw new Error('journal-file-changed'); await this.ownsLease(); await handle.truncate(completeBytes); await handle.sync(); }
@@ -150,21 +164,30 @@ export class Journal {
     }
     if (!remove.length) return;
     await this.ownsLease();
-    const retired = new Map([...this.retired].filter(([, item]) => Date.parse(item.receivedAt) >= cutoff));
+    // Refuse a full dedup horizon before allocating a replacement index. The
+    // authoritative manifest and segments must remain unchanged on refusal.
+    let retiredCount = this.retired.countReceivedAtOrAfter(cutoff);
     for (const n of remove) for (const slot of this.segments.get(n)!.records)
-      if (this.index.receivedAt(slot) >= cutoff) { const identity = this.index.retired(slot); retired.set(identity.id, identity); }
+      if (this.index.receivedAt(slot) >= cutoff && ++retiredCount > this.policy.tombstones) throw new Error('retention-dedup-limit');
+    const retired = new JournalIndex(this.policy.tombstones);
+    for (const identity of this.retired.identities()) if (Date.parse(identity.receivedAt) >= cutoff) retired.addRetired(identity);
+    for (const n of remove) for (const slot of this.segments.get(n)!.records)
+      if (this.index.receivedAt(slot) >= cutoff) {
+        if (retired.size >= this.policy.tombstones) throw new Error('retention-dedup-limit');
+        retired.addRetired(this.index.retired(slot));
+      }
     if (retired.size > this.policy.tombstones) throw new Error('retention-dedup-limit');
     const firstSegment = remove.at(-1)! + 1;
     const removedRecords = remove.flatMap(n => this.segments.get(n)!.records);
     const firstSequence = removedRecords.length ? this.index.sequence(removedRecords.at(-1)!) + 1 : this.manifest.firstSequence;
-    const manifest: RetentionManifest = { retentionVersion: 1, firstSegment, firstSequence, expiredBefore: new Date(cutoff).toISOString(), retired: [...retired.values()] };
+    const manifest: RetentionManifest = { retentionVersion: 1, firstSegment, firstSequence, expiredBefore: new Date(cutoff).toISOString(), retired: [] };
     // Invalidate derived data first: a crash must not leave a cache of pruned facts.
     await this.options.beforePrune?.();
     this.poisoned = true;
-    await atomicPrivateJson(this.directory, 'retention.json', manifest, this.ownsLease);
+    await writeRetentionStream(this.directory, manifest, retired.identities(), this.ownsLease);
     await this.options.afterRetentionCommit?.();
     this.manifest = manifest; this.segment = nextActive;
-    this.retired.clear(); for (const [key, value] of retired) this.retired.set(key, value);
+    this.retired = retired;
     for (const n of remove) {
       const segment = this.segments.get(n)!;
       for (const slot of segment.records) this.index.remove(slot);
@@ -187,9 +210,9 @@ export class Journal {
       await this.ownsLease();
       const offered=new Map<string,string>();
       const checked=input.map(envelope=>{
-        const value=parseSource(Buffer.from(JSON.stringify(envelope)));
+        const value=snapshotSource(envelope);
         if(!value||!this.acceptScope(value)||(admit&&!admit(value)))throw new Error('invalid-source-envelope');
-        const digest=envelopeDigest(value),previous=offered.get(value.eventId),existing=this.index.find(value.eventId),retired=this.retired.get(value.eventId);
+        const digest=envelopeDigest(value),previous=offered.get(value.eventId),existing=this.index.find(value.eventId),retired=this.retiredIdentity(value.eventId);
         if((previous!==undefined&&previous!==digest)||(existing!==undefined&&!this.index.matches(existing,value))||(retired&&retired.digest!==digest))throw new Error('event-id-conflict');
         offered.set(value.eventId,digest);return value;
       });
@@ -197,7 +220,7 @@ export class Journal {
       let group:SourceJournalRecord[]=[],parts:Buffer[]=[],groupBytes=0;
       const flush=async()=>{if(!group.length)return;await this.writeGroup(group,Buffer.concat(parts,groupBytes));group=[];parts=[];groupBytes=0;};
       for(const envelope of checked){
-        const existing=this.index.find(envelope.eventId),retired=this.retired.get(envelope.eventId),previous=staged.get(envelope.eventId);
+        const existing=this.index.find(envelope.eventId),retired=this.retiredIdentity(envelope.eventId),previous=staged.get(envelope.eventId);
         if(existing!==undefined){results.push({added:false,record:{journalVersion:1,ingestSequence:this.index.sequence(existing),envelope}});continue;}
         if(retired){results.push({added:false,record:{journalVersion:1,ingestSequence:retired.sequence,envelope}});continue;}
         if(previous){results.push({added:false,record:previous});continue;}
@@ -247,24 +270,22 @@ export class Journal {
     for (const [number, segment] of this.segments) {
       const lastSlot = segment.records.at(-1);
       if (lastSlot === undefined || this.index.sequence(lastSlot) <= afterSequence) continue;
-      const read = await this.directory.read(this.name(number), this.policy.segmentBytes);
-      let start = 0;
+      const read = await this.directory.file(this.name(number));
       let expectedSequence = this.index.sequence(segment.records[0]!);
-      while (start < read.bytes.length) {
-        const end = read.bytes.indexOf(10, start);
-        if (end < 0 || end - start > MAX_SOURCE_BYTES + 256) throw new Error('journal-corrupt');
-        let value: SourceJournalRecord;
-        try { value = JSON.parse(new TextDecoder('utf-8', {fatal:true}).decode(read.bytes.subarray(start, end))) as SourceJournalRecord; }
-        catch { throw new Error('journal-corrupt'); }
-        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('journal-corrupt');
-        const envelope = validateSource(value.envelope);
-        const slot = envelope && this.index.find(envelope.eventId);
-        if (!envelope || !this.acceptScope(envelope) || value.journalVersion !== 1 || Object.keys(value).sort().join(',') !== 'envelope,ingestSequence,journalVersion' || slot === undefined || this.index.sequence(slot) !== value.ingestSequence || value.ingestSequence !== expectedSequence || !this.index.matches(slot, envelope)) throw new Error('journal-corrupt');
-        expectedSequence++;
-        if (value.ingestSequence > afterSequence) records.push(value);
-        if (records.length === limit) { await this.ownsLease(); return records; }
-        start = end + 1;
-      }
+      try {
+        if (read.info.size > this.policy.segmentBytes) throw new Error('storage-file-too-large');
+        const {tornTail} = await this.scanLines(read, line => {
+          const value = parseJournalSnapshot(line, this.strings);
+          if (!value) throw new Error('journal-corrupt');
+          const envelope = value.envelope, slot = this.index.find(envelope.eventId);
+          if (!this.acceptScope(envelope) || slot === undefined || this.index.sequence(slot) !== value.ingestSequence || value.ingestSequence !== expectedSequence || !this.index.matches(slot, envelope)) throw new Error('journal-corrupt');
+          expectedSequence++;
+          if (value.ingestSequence > afterSequence) records.push(value);
+          return records.length < limit;
+        });
+        if (tornTail) throw new Error('journal-corrupt');
+      } finally { await read.handle.close(); }
+      if (records.length === limit) { await this.ownsLease(); return records; }
     }
     await this.ownsLease();
     return records;

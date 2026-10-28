@@ -30,13 +30,23 @@ export async function atomicPrivateJson(directory: SecureDirectory, name: string
   await atomicPrivateBytes(directory,name,Buffer.from(JSON.stringify(value)),ownsLease);
 }
 export async function atomicPrivateBytes(directory: SecureDirectory, name: string, bytes:Uint8Array, ownsLease: () => Promise<void>): Promise<void> {
+  await atomicPrivateChunks(directory, name, [bytes], ownsLease);
+}
+export async function atomicPrivateChunks(directory: SecureDirectory, name: string, chunks: Iterable<Uint8Array>, ownsLease: () => Promise<void>): Promise<void> {
   const temporary = `history-${randomUUID()}.tmp`, path = join(directory.path, temporary);
   await ownsLease(); await directory.guard();
   let created:import('node:fs').Stats|undefined;
   try{const file = await open(path, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
-    try {created=await file.stat();await file.writeFile(bytes); await file.sync();}finally{await file.close();}
+    try {created=await file.stat();for (const bytes of chunks) {let offset=0;while(offset<bytes.length){const result=await file.write(bytes,offset,bytes.length-offset,null);if(!result.bytesWritten)throw new Error('history-short-write');offset+=result.bytesWritten;}} await file.sync();}finally{await file.close();}
     await ownsLease(); await directory.guard(); await rename(path, join(directory.path, name)); await directory.sync();
   }finally{if(created){const current=await lstat(path).catch(()=>undefined);if(current&&sameFile(created,current))await unlink(path).catch(()=>{});}}
+}
+export function parseRetiredIdentity(value: unknown): RetiredIdentity {
+  const item = value as RetiredIdentity;
+  if (!item || Object.keys(item).sort().join(',') !== 'digest,id,receivedAt,sequence' || typeof item.id !== 'string' || !/^[0-9a-f-]{36}$/.test(item.id) ||
+      typeof item.digest !== 'string' || !/^[0-9a-f]{64}$/.test(item.digest) || !Number.isSafeInteger(item.sequence) || item.sequence < 1 ||
+      typeof item.receivedAt !== 'string' || !Number.isFinite(Date.parse(item.receivedAt))) throw new Error('retention-manifest-invalid');
+  return item;
 }
 export function parseRetention(value: unknown, limit: number): RetentionManifest {
   const m = value as RetentionManifest;

@@ -262,6 +262,10 @@
     }
   },
   "scripts": {
+    "package:candidate": "node scripts/package-candidate.mjs",
+    "verify:candidate": "node scripts/verify-candidate.mjs .local/overwatch-supervision-candidate-0.0.4-darwin-arm64.vsix",
+    "test:candidate": "node scripts/test-candidate.mjs",
+    "qualify:resources": "node scripts/qualify-resources.mjs",
     "dev:landing": "node scripts/serve-landing.mjs",
     "generate:contracts": "node scripts/generate-contracts.mjs",
     "check:contracts": "node scripts/generate-contracts.mjs --check",
@@ -279,6 +283,7 @@
     "supervision:details": "node scripts/supervision-details.mjs"
   },
   "devDependencies": {
+    "yauzl": "3.4.0",
     "@types/node": "22.18.10",
     "@types/vscode": "1.105.0",
     "@vscode/vsce": "4.0.0",

@@ -1,0 +1,102 @@
+{
+  "recordedAt": "2026-10-27T03:58:30.458Z",
+  "baselineCommit": "f893bda",
+  "scope": "file-sized secure-read allocation with growth/short-read rejection",
+  "nativeAgentDelivery": false,
+  "checks": {
+    "strictTypesContractsBuild": true,
+    "unit": {
+      "tests": 187,
+      "pass": 187,
+      "fail": 0,
+      "skipped": 0
+    },
+    "process": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0
+    },
+    "installedEditor": {
+      "passed": true,
+      "checks": 40,
+      "editorApiVersion": "1.128.0",
+      "extensionHostNode": "24.19.0"
+    },
+    "go": "source unchanged; compiled helper exercised by native process and installed-host checks"
+  },
+  "resourceQualification": {
+    "passed": false,
+    "nearCap": {
+      "recordedAt": "2026-10-27T03:57:44.801Z",
+      "nativeDelivery": false,
+      "platform": "darwin",
+      "arch": "arm64",
+      "cpu": "Apple M4 Pro",
+      "node": "v24.21.0",
+      "records": 97280,
+      "bytes": 104856734,
+      "segments": 21,
+      "openAndFirstProjectionMs": 2506.2879590000002,
+      "completeRecentProjectionMs": 7350.374459,
+      "sourceAndProjectionCpuMs": 1264.96,
+      "incrementalRssBytes": 102809600,
+      "incrementalHeapBytes": 57361416,
+      "incrementalExternalBytes": 15254399,
+      "incrementalArrayBufferBytes": 15253642,
+      "settledIncrementalRssBytes": 102809600,
+      "peakObservedRssBytes": 180813824,
+      "bufferedRecords": 5000,
+      "projectedEvidence": 5000,
+      "stagedLoadingVisible": true,
+      "statuses": [
+        "Loading retained history · checking journal",
+        "Loading retained history · 200/5000 projected · live state unknown",
+        "Loading retained history · 400/5000 projected · live state unknown"
+      ],
+      "history": {
+        "firstSequence": 1,
+        "nextSequence": 97281,
+        "retainedRecords": 97280,
+        "bufferedRecords": 5000,
+        "bufferedFirstSequence": 92281,
+        "bytes": 104856734,
+        "retiredIdentities": 0,
+        "expiredBefore": "1970-01-01T00:00:00.000Z"
+      },
+      "budgetBytes": 78643200,
+      "memoryBudgetPassed": false,
+      "limitations": [
+        "Synthetic near-cap source journal is generated outside the measured reader process.",
+        "A fresh reader validates all retained records and completes the recent 5,000-record projection. Older payloads remain on disk.",
+        "RSS/heap are sampled reader-process measurements, not the installed shared extension host.",
+        "An explicit garbage collection precedes the reader baseline; no forced collection is used to reduce measured peaks."
+      ]
+    },
+    "installed": "not remeasured; preceding CPU, shared-host memory and burst-latency failures remain open"
+  },
+  "limitations": [
+    "Default sandbox unit run failed watcher-backoff and skipped eleven socket checks; native rerun passed all checks without skips.",
+    "Two replay samples varied; no paired control or stable RSS saving is claimed.",
+    "T22/G3/T24 remain open."
+  ],
+  "evidence": [
+    "docs/t22-sized-read-history.json",
+    "docs/t22-sized-read-history-final.json"
+  ],
+  "cleanup": {
+    "run": "t22-sized-read",
+    "publisherEnabled": false,
+    "brokerConfigured": false,
+    "hooksPresent": false,
+    "leasePresent": false,
+    "resetIntentPresent": false,
+    "pendingInboxEntries": 0
+  },
+  "sha256": {
+    "src/transport/secureFs.ts": "1067850b85379a9f05a782f7e4c78416c9a815588be994de86e4799e144689d5",
+    "tests/unit/secure-fs.test.ts": "5a44a04a359fc191ade387e54ca16e6d4cce69753115b4957c47ec279f5a66fa",
+    "dist/extension.cjs": "d17d5a7bd4a9b0c9c68f7b6333102d0069716ccceea7c7b43cbbc5e2dd655808",
+    "dist/cursor-supervision-hook": "299bb375c99488c7ee2526d94475a6dddacc0f468efdf31df675ae357224336b"
+  }
+}

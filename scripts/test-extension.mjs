@@ -1,6 +1,6 @@
 import {build} from 'esbuild';
 import {mkdir,writeFile,readFile,rm} from 'node:fs/promises';
-import {spawn} from 'node:child_process';
+import {spawn,spawnSync} from 'node:child_process';
 import {resolve,join} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 
@@ -12,6 +12,11 @@ const profile=join(project,'.local','eh-'+createHash('sha256').update(suffix).di
 const fixture=join(testRoot,'fixture with spaces-'+randomUUID());
 await mkdir(testRoot,{recursive:true});await mkdir(fixture,{recursive:true});
 await writeFile(join(fixture,'.overwatch-probe-fixture'),'overwatch-invented-fixture-v1\n');
+// Do not let the isolated fixture discover or poll this checkout's parent Git
+// repository. Collector metadata is private data rather than project content.
+const initialized=spawnSync('git',['-C',fixture,'init','--quiet'],{encoding:'utf8'});
+if(initialized.error||initialized.status!==0)throw new Error('fixture-git-initialization-failed');
+await writeFile(join(fixture,'.gitignore'),'.local/\n');
 await mkdir(join(fixture,'.vscode'),{recursive:true});
 await writeFile(join(fixture,'.vscode','settings.json'),JSON.stringify({'files.autoSave':'off'}));
 for(const [name,value]of Object.entries({'read.txt':'Invented extension read fixture: amber.\n','edit.txt':'Invented extension edit fixture: cobalt.\n'}))try{await writeFile(join(fixture,name),value,{flag:'wx'});}catch(error){if(error.code!=='EEXIST')throw error;}

@@ -119,13 +119,16 @@ export class FileActivityStore {
   private detailCount = 0;
   coverageDropped = 0;
   transportGaps = 0;
+  private cachedView: {at: number; expiresAt: number; value: {operations: OperationActivity[]; files: FileActivity[]; coverageDropped: number; transportGaps: number}} | undefined;
   constructor(private readonly now: () => number = Date.now, private readonly completionAgeMs = 30000) {
     if (!Number.isFinite(completionAgeMs) || completionAgeMs < 1) throw new Error('invalid-completion-age');
   }
   markLiveStateUnknown(): void {
+    this.cachedView = undefined;
     for (const bucket of this.buckets.values()) bucket.liveStateUnknown = true;
   }
   clear(): void {
+    this.cachedView = undefined;
     this.seen.clear(); this.buckets.clear(); this.retired.clear(); this.detailCount = 0;
     this.coverageDropped = 0; this.transportGaps = 0;
   }
@@ -138,16 +141,19 @@ export class FileActivityStore {
     if (this.seen.has(e))
       return false;
     if (this.seen.size >= MAX_IDENTITIES) {
+      this.cachedView = undefined;
       this.coverageDropped++;
       return false;
     }
     this.seen.add(e);
     if (e.sourceEvent === 'transportGap') {
+      this.cachedView = undefined;
       this.transportGaps++;
       return true;
     }
     if (!['read', 'edit', 'delete', 'search', 'shell', 'mcp'].includes(e.operation))
       return true;
+    this.cachedView = undefined;
     let fact: FileObservation = observation.pathHint === undefined ? { event: e } : { event: e, pathHint: observation.pathHint };
     const key = keyOf(fact);
     let bucket = this.buckets.get(key);
@@ -179,13 +185,21 @@ export class FileActivityStore {
     this.detailCount++;
     return true;
   }
-  snapshot(): {
+  snapshot(): {operations: OperationActivity[]; files: FileActivity[]; coverageDropped: number; transportGaps: number} {
+    const value = this.viewSnapshot();
+    return {...value, operations: value.operations.map(operation => ({...operation, eventIds: [...operation.eventIds], fileIdentities: [...operation.fileIdentities]})), files: value.files.map(file => ({...file}))};
+  }
+  /** Immutable derived facts shared by the native views until source facts or
+   * an uncertainty boundary change. Public snapshots remain detached copies. */
+  viewSnapshot(): {
     operations: OperationActivity[];
     files: FileActivity[];
     coverageDropped: number;
     transportGaps: number;
   } {
     const now = this.now();
+    if (this.cachedView && now >= this.cachedView.at && now < this.cachedView.expiresAt && this.cachedView.value.coverageDropped === this.coverageDropped && this.cachedView.value.transportGaps === this.transportGaps) return this.cachedView.value;
+    let expiresAt = Infinity;
     const operations: OperationActivity[] = [];
     const files = new Map<string, FileActivity>();
     for (const [key, bucket] of this.buckets) {
@@ -205,6 +219,7 @@ export class FileActivityStore {
       const pending = starts.some(o => o.event.phase === 'started') ? 'started' : 'requested';
       const state: OperationActivity['state'] = ambiguous ? 'ambiguous' : terminal?.event.phase ?? (hasStart ? pending : 'observed');
       const firstStart = starts.length ? Math.min(...starts.map(o => Date.parse(o.event.receivedAt))) : undefined;
+      if (!ambiguous && !hasTerminal && !bucket.liveStateUnknown && firstStart !== undefined && firstStart + this.completionAgeMs > now) expiresAt = Math.min(expiresAt, firstStart + this.completionAgeMs);
       const liveState: OperationActivity['liveState'] = ambiguous ? 'ambiguous' : hasTerminal ? 'terminal' : !hasStart ? 'observed'
         : bucket.liveStateUnknown ? 'unknown-after-reload' : firstStart !== undefined && now - firstStart >= this.completionAgeMs
           ? 'completion-not-observed' : 'recent-request';
@@ -233,6 +248,10 @@ export class FileActivityStore {
         file.editReports += facts.filter(o => o.event.sourceEvent === 'afterFileEdit').length;
       }
     }
-    return { operations, files: [...files.values()], coverageDropped: this.coverageDropped, transportGaps: this.transportGaps };
+    for (const operation of operations) {Object.freeze(operation.eventIds);Object.freeze(operation.fileIdentities);Object.freeze(operation);}
+    const fileRows = [...files.values()];for (const file of fileRows) Object.freeze(file);
+    Object.freeze(operations);Object.freeze(fileRows);
+    const value = {operations, files: fileRows, coverageDropped: this.coverageDropped, transportGaps: this.transportGaps};Object.freeze(value);
+    this.cachedView = {at: now, expiresAt, value};return value;
   }
 }

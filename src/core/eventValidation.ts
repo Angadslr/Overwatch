@@ -1,6 +1,7 @@
 import Ajv from 'ajv';
 import schema from '../../schemas/event-v1.schema.json';
 import { MAX_EVENT_BYTES, type EventV1 } from './contracts';
+import {internDataStrings} from './stringPool';
 
 const ajv = new Ajv({ strict: true, strictRequired: false, allErrors: false });
 // The annotation is enforced on UTF-8 bytes before parsing, not on JS string length.
@@ -44,7 +45,7 @@ function freezeSnapshot(value: object): void {
 
 /** Validate and detach caller-owned data once. Only snapshots created here are
  * shared: a frozen caller object alone is never evidence of prior validation. */
-export function snapshotEvent(input: EventV1, stage: EventStage = 'spool'): EventResult {
+export function snapshotEvent(input: EventV1, stage: EventStage = 'spool', strings?: Map<string, string>): EventResult {
   if (snapshots.has(input)) {
     if ((stage === 'spool' && input.ingestSequence !== undefined) ||
         (stage === 'journal' && input.ingestSequence === undefined)) {
@@ -56,6 +57,7 @@ export function snapshotEvent(input: EventV1, stage: EventStage = 'spool'): Even
   try { checked = parseEvent(JSON.stringify(input), stage); }
   catch { return { ok: false, reason: 'invalid-event' }; }
   if (!checked.ok) return checked;
+  if (strings) internDataStrings(checked.event, strings);
   freezeSnapshot(checked.event);
   snapshots.add(checked.event);
   return checked;

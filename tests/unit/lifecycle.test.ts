@@ -21,6 +21,17 @@ function fact(options: Partial<EventV1> = {}): EventV1 {
 }
 const stop = (options: Partial<EventV1> = {}) => fact({ sourceEvent: 'stop', operation: 'lifecycle', lifecycleScope: 'generation', phase: 'completed', outcome: 'success', ...options });
 
+test('shared view summaries invalidate at exact uncertainty boundaries while public snapshots remain detached', () => {
+  let now = epoch;const files = new FileActivityStore(() => now), event = fact();files.apply({event});
+  const first = files.viewSnapshot();assert.equal(files.viewSnapshot(), first);assert.ok(Object.isFrozen(first.operations[0]));
+  const publicCopy = files.snapshot();publicCopy.operations[0]!.eventIds.push('not-source');assert.equal(files.viewSnapshot().operations[0]!.eventIds.length, 1);
+  now += 29999;assert.equal(files.viewSnapshot(), first);now++;
+  assert.notEqual(files.viewSnapshot(), first);assert.equal(files.viewSnapshot().operations[0]!.liveState, 'completion-not-observed');
+  now = epoch;assert.equal(files.viewSnapshot().operations[0]!.liveState, 'recent-request');
+  files.markLiveStateUnknown();assert.equal(files.viewSnapshot().operations[0]!.liveState, 'unknown-after-reload');
+  files.clear();assert.deepEqual(files.viewSnapshot().operations, []);
+});
+
 test('turn completion preserves its conversation and does not complete a pending operation', () => {
   let now = epoch; const life = new LifecycleStore(), files = new FileActivityStore(() => now);
   life.apply(fact({ sourceEvent: 'sessionStart', lifecycleScope: 'conversation', operation: 'lifecycle', phase: 'started' }));

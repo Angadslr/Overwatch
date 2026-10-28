@@ -1,0 +1,34 @@
+{
+  "recordedAt": "2026-10-27T17:49:36.325Z",
+  "qualifiedRelease": false,
+  "resourceGate": "open",
+  "packageSha256": "26858e28ddac21ab4ecd5f841c52ca1b274ba870615e19a43d42fbea3b3e014c",
+  "files": [
+    "[Content_Types].xml",
+    "extension.vsixmanifest",
+    "extension/THIRD_PARTY_NOTICES.txt",
+    "extension/assets/supervision.svg",
+    "extension/dist/cursor-supervision-hook",
+    "extension/dist/extension.cjs",
+    "extension/package.json",
+    "extension/readme.md"
+  ],
+  "helperExecutable": true,
+  "architecture": "darwin-arm64",
+  "bundledDependencies": true,
+  "privateCandidate": true,
+  "reproducibleSameMachine": true,
+  "firstBuildSha256": "26858e28ddac21ab4ecd5f841c52ca1b274ba870615e19a43d42fbea3b3e014c",
+  "installedSmokePassed": true,
+  "versions": {
+    "cursor": "3.26.16",
+    "api": "1.128.0",
+    "extensionHostNode": "24.19.0",
+    "developmentNode": "v24.21.0",
+    "go": "go version go1.27.3 darwin/arm64"
+  },
+  "limitations": [
+    "G3 remains open; this is a private engineering candidate.",
+    "Cross-machine reproducibility and final ordinary native Agent smoke are not established."
+  ]
+}

@@ -2,7 +2,7 @@ import { constants, watch, type FSWatcher, type Dir } from 'node:fs';
 import { mkdir, open, unlink, lstat, opendir, realpath, rename } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { SecureDirectory, sameFile } from './secureFs';
+import { SecureDirectory, sameFile, type PinnedPrivateFile } from './secureFs';
 import { Journal, type SourceJournalRecord, type JournalOptions } from './journal';
 import { ProjectionCheckpoints } from './checkpoint';
 import { MAX_SOURCE_BYTES, OPAQUE_PATTERN, UUID_PATTERN, parseSource } from './sourceValidation';
@@ -82,13 +82,17 @@ export class SpoolIngester {
   readonly journal: Journal;
   readonly checkpoints: ProjectionCheckpoints;
   async inspectProducerFailure():Promise<ProducerFailure|undefined>{
-    await this.assertOwner();try{const read=await (this.config.requireCollectorEpoch?this.inbox:this.root).read('producer-loss.json',512),value=JSON.parse(read.bytes.toString('utf8'));
+    await this.assertOwner();
+    if (this.config.requireCollectorEpoch && this.recentEmptyQueue()?.noProducerLoss) return undefined;
+    try{const read=await (this.config.requireCollectorEpoch?this.inbox:this.root).read('producer-loss.json',512),value=JSON.parse(read.bytes.toString('utf8'));
       if(read.info.nlink!==1||!value||Object.keys(value).sort().join(',')!=='category,lossVersion,recordedAt'||value.lossVersion!==1||!['publication-failed','deadline-exceeded'].includes(value.category)||typeof value.recordedAt!=='string'||!Number.isFinite(Date.parse(value.recordedAt)))return{category:'uncertain'};
       return{category:value.category,recordedAt:value.recordedAt};
     }catch(error){return(error as NodeJS.ErrnoException).code==='ENOENT'?undefined:{category:'uncertain'};}
   }
   async inspectQueue(): Promise<QueueSample> {
     await this.assertOwner();
+    const recent = this.recentEmptyQueue();
+    if (recent) return {...recent.sample};
     const listing = await opendir(this.inbox.path);
     const now = Date.now(); let scannedEntries = 0, readyFiles = 0, oldestObservedAgeMs = 0, incomplete = true;
     try {
@@ -110,12 +114,20 @@ export class SpoolIngester {
   private nextPollAt = 0;
   private rescanRequested = false;
   private pending: Promise<SourceJournalRecord[]> | undefined;
+  private probingEmpty = false;
   private closed = false;
   private closing = false;
   private closeTask: Promise<void> | undefined;
   private admissionPolicy: Partial<PrivacyPolicy>;
   private broker:LocalBroker|undefined;
   private brokerState:'off'|'active'|'unavailable'='off';
+  private pinnedLease: PinnedPrivateFile | undefined;
+  private ownershipProof: Promise<void> | undefined;
+  private emptyQueue: {sample: QueueSample; noProducerLoss: boolean} | undefined;
+  private recentEmptyQueue(): typeof this.emptyQueue {
+    const at = this.emptyQueue ? Date.parse(this.emptyQueue.sample.sampledAt) : NaN, now = Date.now();
+    return this.watchAvailable && now >= at && now - at <= 1500 ? this.emptyQueue : undefined;
+  }
   brokerStatus():{state:'off'|'active'|'unavailable';connections:number;queued:number;bufferedBytes:number}{return{state:this.brokerState,connections:0,queued:0,bufferedBytes:0,...(this.broker?.snapshot()??{})};}
   private brokerAdmission(event:SourceEnvelopeV1):BrokerRejection|undefined{
     if(this.closed||this.closing||!this.config.enabled)return 'closed';
@@ -196,6 +208,7 @@ export class SpoolIngester {
       }
       await root.sync();
       owner = new SpoolIngester(root, inbox, history, { ...config }, lease, leaseBytes, options,scopedReset);
+      owner.pinnedLease = await root.pin('collector.lock', 512);
       if(!scopedReset){
         try{await root.file('reset-intent.json').then(file=>file.handle.close());throw new Error('pending-history-reset');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
         await owner.checkpoints.cleanStaging();await owner.journal.load();
@@ -263,14 +276,25 @@ export class SpoolIngester {
       Object.assign(this.config, next);
     } finally { await unlink(path).catch(() => {}); }
   }
-  async assertOwner(): Promise<void> {
+  assertOwner(): Promise<void> {
+    if (this.ownershipProof) return this.ownershipProof;
+    const proof = this.proveOwner();
+    const pending = proof.finally(() => {if (this.ownershipProof === pending) this.ownershipProof = undefined;});
+    this.ownershipProof = pending;return pending;
+  }
+  private async proveOwner(): Promise<void> {
     if (this.closed)
       throw new Error('collector-closed');
-    const current = await this.root.read('collector.lock', 512);
+    // These independent read-only proofs must all finish before any mutation
+    // or acknowledgment, but need not serialize their filesystem round trips.
+    const proofs = await Promise.allSettled([this.pinnedLease ? this.pinnedLease.read() : this.root.read('collector.lock', 512),
+      this.scopedReset ? Promise.resolve() : this.inbox.guard(), this.history.guard()]);
+    for (const proof of proofs) if (proof.status === 'rejected') throw proof.reason;
+    const lease = proofs[0]!;
+    if (lease.status !== 'fulfilled') throw new Error('collector-ownership-lost');
+    const current = lease.value;
     if (!current.bytes.equals(this.leaseBytes) || current.info.nlink !== 1)
       throw new Error('collector-ownership-lost');
-    if(!this.scopedReset)await this.inbox.guard();
-    await this.history.guard();
   }
   async assertConfiguration():Promise<void>{await this.assertOwner();const actual=await this.root.read('publisher.json',4096);if(actual.bytes.toString('utf8')!==JSON.stringify(this.config))throw new Error('publisher-config-conflict');}
   /** All acknowledgments are conditional on the same ready inode/contents. */
@@ -295,30 +319,53 @@ export class SpoolIngester {
   scan(afterDurable?: () => Promise<void>): Promise<SourceJournalRecord[]> {
     if(this.scopedReset)return Promise.reject(new Error('scoped-reset-only'));
     if (this.pending)
-      return this.pending;
+      return this.probingEmpty ? this.pending.then(() => this.scan(afterDurable)) : this.pending;
     if (this.closed || this.closing)
       return Promise.reject(new Error('collector-closed'));
     this.pending = this.scanBatch(afterDurable).finally(() => { this.pending = undefined; });
     return this.pending;
   }
+  /** A healthy watched inbox was empty on the last complete sweep. Looking for
+   * an entry needs directory metadata, not authority to read/acknowledge payloads.
+   * Any entry, including an unexpected one, returns to the full owned scan. */
+  private scanWatchedEmpty(): Promise<SourceJournalRecord[]> {
+    this.probingEmpty = true;
+    this.pending = (async () => {
+      await this.journal.maintain(); // Pruning independently proves ownership.
+      await this.inbox.guard();
+      const listing = await opendir(this.inbox.path);
+      let empty: boolean;
+      try {empty = (await listing.read()) === null;await this.inbox.guard();}
+      finally {await listing.close();}
+      if (!empty) {this.emptyQueue = undefined;return this.scanBatch();}
+      this.emptyQueue = this.watchAvailable && !this.rescanRequested
+        ? {sample: {sampledAt: new Date().toISOString(), readyFiles: 0, oldestObservedAgeMs: 0, incomplete: false, scannedEntries: 0}, noProducerLoss: true}
+        : undefined;
+      return [];
+    })().finally(() => {this.pending = undefined;this.probingEmpty = false;});
+    return this.pending;
+  }
   private async scanBatch(afterDurable?: () => Promise<void>): Promise<SourceJournalRecord[]> {
     await this.assertOwner();
     await this.journal.maintain();
+    const wholeSweep = !this.cursor;
     if (!this.cursor) {
       this.cursor = await opendir(this.inbox.path);
       await this.inbox.guard();
     }
     const records: SourceJournalRecord[] = [];
-    let bytes = 0;
+    let bytes = 0, scannedEntries = 0, noProducerLoss = true, complete = false, sawReady = false;
     for (let count = 0; count < 256 && bytes < 2 * 1024 * 1024; count++) {
       const entry = await this.cursor.read();
       if (!entry) {
         await this.cursor.close();
         this.cursor = undefined;
+        complete = true;
         break;
       }
       const name = entry.name;
-      if(name==='producer-loss.json')continue;
+      scannedEntries++;
+      if(name==='producer-loss.json'){noProducerLoss = false;continue;}
       if (!/^[0-9a-f-]{36}\.json$/.test(name) || !UUID_PATTERN.test(name.slice(0, -5))) {
         // Orphan temp files are never ingested. Delete only old, regular ones;
         // recent publishers may still own their temp files.
@@ -334,6 +381,7 @@ export class SpoolIngester {
         continue;
       }
       let read;
+      sawReady = true;
       try {
         read = await this.inbox.read(name, MAX_SOURCE_BYTES);
       }
@@ -372,6 +420,11 @@ export class SpoolIngester {
         this.counters.failures++;
       }
     }
+    // A completed empty sweep is already a bounded metadata observation. Health
+    // may reuse its actual timestamp; it is never relabelled as a fresh scan.
+    this.emptyQueue = wholeSweep && complete && !sawReady && !this.rescanRequested && this.watchAvailable
+      ? {sample: {sampledAt: new Date().toISOString(), readyFiles: 0, oldestObservedAgeMs: 0, incomplete: false, scannedEntries}, noProducerLoss}
+      : undefined;
     return records;
   }
   start(intervalMs = 250, watchNotifications = true): void {
@@ -380,7 +433,8 @@ export class SpoolIngester {
       throw new Error('invalid-rescan-state');
     const wake = () => {
       if (this.closing || this.closed || this.pending) return;
-      void this.scan().then(records => {
+      const scan = this.watchAvailable && this.emptyQueue?.sample.scannedEntries === 0 ? this.scanWatchedEmpty() : this.scan();
+      void scan.then(records => {
         const emptyWatchedQueue = this.watchAvailable && records.length === 0 && !this.cursor;
         this.nextPollAt = Date.now() + (emptyWatchedQueue ? Math.max(intervalMs,1000) : intervalMs);
         if (this.rescanRequested) { this.rescanRequested = false; this.nextPollAt = 0; setImmediate(wake); }
@@ -391,10 +445,12 @@ export class SpoolIngester {
     try {
       if (watchNotifications) {
         this.watcher = watch(this.inbox.path, (eventType, filename) => {
+          if (typeof filename !== 'string') {this.emptyQueue = undefined;return;}
           // Opening/scanning a directory can itself generate metadata notices.
           // Immutable ready links need rename wakeups; polling covers unnamed
           // notifications and malformed/changed files without a self-wake loop.
-          if (typeof filename !== 'string' || (filename !== 'producer-loss.json' && (eventType !== 'rename' || !UUID_PATTERN.test(filename.replace(/\.json$/, '')) || !filename.endsWith('.json')))) return;
+          if (filename !== 'producer-loss.json' && (eventType !== 'rename' || !UUID_PATTERN.test(filename.replace(/\.json$/, '')) || !filename.endsWith('.json'))) return;
+          this.emptyQueue = undefined;
           this.nextPollAt = 0; if(this.pending)this.rescanRequested = true;else wake();
         });
         this.watcher.unref();
@@ -440,6 +496,7 @@ export class SpoolIngester {
     }
     catch { /* Never remove a lease whose ownership cannot be proven. */ }
     this.closed = true;
+    await this.pinnedLease?.close();this.pinnedLease = undefined;
     await Promise.all([this.inbox.close(), this.history.close(), this.root.close()]);
   }
 }
