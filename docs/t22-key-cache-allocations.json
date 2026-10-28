@@ -1,0 +1,70 @@
+{
+  "diagnosticOnly": true,
+  "totalSampledAllocations": 698677416,
+  "top": [
+    [
+      "refresh dist/extension.cjs:13948",
+      75519760
+    ],
+    [
+      "viewSnapshot dist/extension.cjs:11020",
+      55504092
+    ],
+    [
+      "set :0",
+      31432852
+    ],
+    [
+      "join :0",
+      30651580
+    ],
+    [
+      "roots dist/extension.cjs:13503",
+      24778916
+    ],
+    [
+      "next :0",
+      24259080
+    ],
+    [
+      "liveRoots dist/extension.cjs:13650",
+      23438188
+    ],
+    [
+      "gM node/extensionHostProcess.js:48",
+      21278768
+    ],
+    [
+      "Map :0",
+      21226136
+    ],
+    [
+      "flatMap :0",
+      20283744
+    ],
+    [
+      "overlapAdvisories dist/extension.cjs:14843",
+      18951044
+    ],
+    [
+      "filter :0",
+      17763856
+    ],
+    [
+      "relativePath dist/extension.cjs:13268",
+      16457056
+    ],
+    [
+      "projectFiles dist/extension.cjs:13355",
+      15822112
+    ],
+    [
+      "(V8 API) :0",
+      11010576
+    ]
+  ],
+  "implementation": {
+    "extension.cjs": "6734cc78e95333705f4f31874216eb8589b75d2ee409903b1b38b6a89fea7be7",
+    "cursor-supervision-hook": "1db897b5d21036204475b9cb8d91a500f9127ed55aca0519b804de1105fb944a"
+  }
+}

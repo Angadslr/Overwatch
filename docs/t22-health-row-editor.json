@@ -1,0 +1,147 @@
+{
+  "recordedAt": "2026-10-28T18:26:51.289Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "editorApiVersion": "1.128.0",
+  "node": "24.19.0",
+  "firstLaunch": {
+    "type": "complete",
+    "stage": "first",
+    "attempts": 1,
+    "errors": 0,
+    "responseP50Ms": 5.153375,
+    "responseP95Ms": 5.153375,
+    "closedP50Ms": 35.387833,
+    "closedP95Ms": 35.387833,
+    "closedMaxMs": 35.387833,
+    "elapsedMs": 35.506083,
+    "providerVisibleMs": 220.41625
+  },
+  "normal": {
+    "type": "complete",
+    "stage": "normal",
+    "attempts": 40,
+    "errors": 0,
+    "responseP50Ms": 4.442125,
+    "responseP95Ms": 6.509541,
+    "closedP50Ms": 24.929541,
+    "closedP95Ms": 28.160875,
+    "closedMaxMs": 34.913792,
+    "elapsedMs": 1975.660708,
+    "samples": 40,
+    "providerVisibleP50Ms": 112.461375,
+    "providerVisibleP95Ms": 204.314042
+  },
+  "burst": {
+    "type": "complete",
+    "stage": "burst",
+    "attempts": 2000,
+    "errors": 0,
+    "responseP50Ms": 2.411875,
+    "responseP95Ms": 3.027125,
+    "closedP50Ms": 19.456083,
+    "closedP95Ms": 26.509458,
+    "closedMaxMs": 40.917416,
+    "elapsedMs": 10018.911083,
+    "targetPerSecond": 200,
+    "targetSeconds": 10,
+    "totalObserved": 2041,
+    "expectedTotal": 2041,
+    "complete": true
+  },
+  "memory": {
+    "initialRss": 406814720,
+    "peakRss": 444039168,
+    "incrementalRss": 37224448,
+    "incrementalHeap": 53280056
+  },
+  "cpuUsage": {
+    "baselineOneCorePercent": 0.8368634449380581,
+    "baselineSampleMs": 15001.611166000002,
+    "emptyOneCorePercent": 1.8307430708377628,
+    "emptySampleMs": 15001.067292,
+    "busyOneCorePercent": 25.786093069429352,
+    "transitionOneCorePercent": 1.255685129831982,
+    "transitionSampleMs": 3001.946834000002,
+    "settledWaitMs": 24870,
+    "idleOneCorePercent": 1.1317578278739389,
+    "idleIncrementalOneCorePercent": 0.29489438293588077,
+    "idleSampleMs": 60002.23575000001
+  },
+  "readiness": {
+    "registered": true,
+    "owner": true,
+    "supported": true,
+    "health": {
+      "transport": "ready",
+      "publisherConfigured": true,
+      "nativeDelivery": "source-event-observed",
+      "sourceCoverage": "partial",
+      "sourceGapEvents": 0,
+      "historyEvents": 0,
+      "privacy": {
+        "excluded": 0,
+        "policyUnavailable": 0,
+        "unresolved": 0
+      },
+      "lastNativeReceipt": "2026-10-28T18:25:20.284Z",
+      "status": "Collector ready · native source activity observed · coverage partial"
+    },
+    "check": {
+      "state": "not-run"
+    },
+    "counters": {
+      "accepted": 2041,
+      "duplicates": 0,
+      "rejected": 0,
+      "failures": 0,
+      "schemaRejected": 0,
+      "scopeRejected": 0,
+      "policyRejected": 0,
+      "expired": 0
+    },
+    "queue": {
+      "sampledAt": "2026-10-28T18:26:49.542Z",
+      "readyFiles": 0,
+      "oldestObservedAgeMs": 0,
+      "incomplete": false,
+      "scannedEntries": 0
+    },
+    "recoveredTail": false,
+    "history": {
+      "firstSequence": 1,
+      "nextSequence": 2042,
+      "retainedRecords": 2041,
+      "bufferedRecords": 2041,
+      "bufferedFirstSequence": 1,
+      "bytes": 2241952,
+      "retiredIdentities": 0,
+      "expiredBefore": "1970-01-01T00:00:00.000Z"
+    },
+    "checkpoint": "cold-replay",
+    "ownership": "owned",
+    "replayDurationMs": 2
+  },
+  "limitations": [
+    "Synthetic inputs through the installed shell/helper path; no ordinary native Agent delivery claim.",
+    "Helper load runs in a separate Node process; only one coordinator child is hosted here.",
+    "First launch is not a forced cold OS cache.",
+    "Visibility means a matching TreeDataProvider row, not browser paint.",
+    "CPU/RSS cover the shared installed extension host and a bounded sampling probe; incremental values use this active-host baseline.",
+    "Transition CPU is measured separately while recent badges/uncertainty can age; settled idle begins at least 31 seconds after the last accepted source receipt.",
+    "Disabled/empty controls are 15-second samples after a 30-second startup warmup; loaded idle is a 60-second shared-host sample. Differences are estimates, not exclusive process attribution."
+  ],
+  "implementation": {
+    "extension.cjs": "10dc0d28daa41547d8edd91fcc5ac524c5091c12f6d914adf777d9e85eaf770e",
+    "cursor-supervision-hook": "1db897b5d21036204475b9cb8d91a500f9127ed55aca0519b804de1105fb944a"
+  },
+  "baselineWarmupMs": 30000,
+  "idleSampleDurationMs": 60000,
+  "providerProbeScope": "first launch and 40 normal-load samples; stopped before burst",
+  "rssSampleIntervalMs": 100,
+  "heapSampleIntervalMs": 1000,
+  "fixtureRepository": "independent invented Git root; .local metadata ignored",
+  "diagnosticTrace": false
+}

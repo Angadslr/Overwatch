@@ -1,0 +1,60 @@
+{
+  "recordedAt": "2026-10-28T19:12:02.824Z",
+  "nativeDelivery": false,
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M4 Pro",
+  "node": "v24.21.0",
+  "records": 97180,
+  "bytes": 104857220,
+  "segments": 20,
+  "retiredRecords": 100000,
+  "retiredBytes": 17889012,
+  "warmReload": false,
+  "warmCache": false,
+  "diagnosticOnly": false,
+  "implementationSha256": "d1454b7d2e01d8cfa260bd453aa1282757bec581c1d6c18f60e2d23f789dcbf0",
+  "openAndFirstProjectionMs": 2932.78925,
+  "completeRecentProjectionMs": 7772.325792,
+  "capacityRefusal": {
+    "passed": true,
+    "durationMs": 7.475207999999839,
+    "retainedRecordsUnchanged": true,
+    "retiredIdentitiesUnchanged": true
+  },
+  "sourceAndProjectionCpuMs": 1712.213,
+  "incrementalRssBytes": 85377024,
+  "incrementalHeapBytes": 45599808,
+  "incrementalExternalBytes": 17509089,
+  "incrementalArrayBufferBytes": 17458970,
+  "settledIncrementalRssBytes": 85377024,
+  "peakObservedRssBytes": 163348480,
+  "bufferedRecords": 5000,
+  "projectedEvidence": 5000,
+  "checkpointState": "cold-replay",
+  "stagedLoadingVisible": true,
+  "statuses": [
+    "Loading retained history · checking journal",
+    "Loading retained history · 200/5000 projected · live state unknown",
+    "Loading retained history · 400/5000 projected · live state unknown"
+  ],
+  "history": {
+    "firstSequence": 100001,
+    "nextSequence": 197181,
+    "retainedRecords": 97180,
+    "bufferedRecords": 5000,
+    "bufferedFirstSequence": 192181,
+    "bytes": 104857220,
+    "retiredIdentities": 100000,
+    "expiredBefore": "1970-01-01T00:00:00.000Z"
+  },
+  "budgetBytes": 78643200,
+  "memoryBudgetPassed": false,
+  "limitations": [
+    "Synthetic near-cap source journal and selected retired-identity fixture are generated outside the measured reader process.",
+    "A fresh reader validates all retained records and completes the recent 5,000-record projection. Older payloads remain on disk.",
+    "RSS/heap are sampled reader-process measurements, not the installed shared extension host.",
+    "An explicit garbage collection precedes the reader baseline; no forced collection is used to reduce measured peaks.",
+    "Large histories deliberately skip the optional checkpoint cache and use responsive staged replay; source history and the 5,000-event evidence window are unchanged."
+  ]
+}

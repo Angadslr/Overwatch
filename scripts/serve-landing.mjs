@@ -8,7 +8,6 @@ const files = new Map([
   ["/index.html", ["index.html", "text/html; charset=utf-8"]],
   ["/styles.css", ["styles.css", "text/css; charset=utf-8"]],
   ["/eye.js", ["eye.js", "text/javascript; charset=utf-8"]],
-  ["/demo.js", ["demo.js", "text/javascript; charset=utf-8"]],
   ["/assets/eye.svg", ["assets/eye.svg", "image/svg+xml"]],
   ["/assets/space-grotesk.ttf", ["assets/space-grotesk.ttf", "font/ttf"]],
 ]);

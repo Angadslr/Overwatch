@@ -1,0 +1,211 @@
+{
+  "diagnosticOnly": true,
+  "qualification": false,
+  "implementation": {
+    "extension.cjs": "10dc0d28daa41547d8edd91fcc5ac524c5091c12f6d914adf777d9e85eaf770e",
+    "cursor-supervision-hook": "1db897b5d21036204475b9cb8d91a500f9127ed55aca0519b804de1105fb944a"
+  },
+  "viewTrace": {
+    "cpuUsage": {
+      "baselineOneCorePercent": 0.8327631108242337,
+      "baselineSampleMs": 15000.784542000001,
+      "emptyOneCorePercent": 3.1730505549429036,
+      "emptySampleMs": 15000.674957999996,
+      "busyOneCorePercent": 28.688764426849836,
+      "transitionOneCorePercent": 1.1060270152223959,
+      "transitionSampleMs": 3001.6445840000088,
+      "settledWaitMs": 24775,
+      "idleOneCorePercent": 1.137055845585069,
+      "idleIncrementalOneCorePercent": 0.3042927347608353,
+      "idleSampleMs": 60000.307165999984
+    },
+    "viewDiagnostics": {
+      "calls": {
+        "disabled": {
+          "tree.refresh": 5,
+          "tree.liveRoots": 5,
+          "store.viewSnapshot": 10,
+          "health.refresh": 5,
+          "attention.update": 5,
+          "tree.getChildren": 12,
+          "tree.getTreeItem": 18,
+          "files.getChildren": 6,
+          "health.getChildren": 2,
+          "health.getTreeItem": 15,
+          "decorations.refresh": 224
+        },
+        "empty": {
+          "tree.refresh": 5,
+          "tree.liveRoots": 80,
+          "store.viewSnapshot": 10,
+          "health.refresh": 13,
+          "attention.update": 5,
+          "health.getChildren": 1,
+          "health.getTreeItem": 15,
+          "decorations.refresh": 75,
+          "files.liveRows": 75,
+          "tree.getTreeItem": 9,
+          "files.getChildren": 3,
+          "tree.getChildren": 6
+        },
+        "workload": {
+          "tree.getChildren": 2164,
+          "decorations.refresh": 62,
+          "files.liveRows": 62,
+          "tree.liveRoots": 123,
+          "tree.refresh": 61,
+          "store.viewSnapshot": 122,
+          "health.refresh": 67,
+          "attention.update": 61,
+          "health.getTreeItem": 8,
+          "tree.getTreeItem": 8405,
+          "files.getChildren": 180
+        },
+        "settling": {
+          "tree.refresh": 15,
+          "tree.liveRoots": 168,
+          "store.viewSnapshot": 30,
+          "health.refresh": 30,
+          "attention.update": 15,
+          "decorations.refresh": 153,
+          "files.liveRows": 153,
+          "files.getChildren": 45,
+          "tree.getChildren": 30,
+          "tree.getTreeItem": 2295,
+          "health.getTreeItem": 15
+        },
+        "loaded-idle": {
+          "decorations.refresh": 299,
+          "files.liveRows": 299,
+          "tree.liveRoots": 299,
+          "files.getChildren": 3,
+          "tree.getChildren": 2,
+          "tree.getTreeItem": 153,
+          "health.refresh": 30,
+          "health.getTreeItem": 30
+        }
+      },
+      "idleLocalBefore": {
+        "state": "watching",
+        "coverage": "partial",
+        "scope": "eligible files in the fixture workspace",
+        "limitations": [
+          "watcher notifications may coalesce or be missed",
+          "watch registration has no activation acknowledgment",
+          "no initial scan or complete disk audit",
+          "file-scheme buffers in the owning window only",
+          "current host memory only"
+        ],
+        "queued": 0,
+        "dropped": 0,
+        "failures": 0,
+        "excluded": 49,
+        "coalesced": 0,
+        "cancelled": 0
+      },
+      "idleLocalAfter": {
+        "state": "watching",
+        "coverage": "partial",
+        "scope": "eligible files in the fixture workspace",
+        "limitations": [
+          "watcher notifications may coalesce or be missed",
+          "watch registration has no activation acknowledgment",
+          "no initial scan or complete disk audit",
+          "file-scheme buffers in the owning window only",
+          "current host memory only"
+        ],
+        "queued": 0,
+        "dropped": 0,
+        "failures": 0,
+        "excluded": 49,
+        "coalesced": 0,
+        "cancelled": 0
+      }
+    }
+  },
+  "observerControl": {
+    "cpuUsage": {
+      "baselineOneCorePercent": 0.5131702076299055,
+      "baselineSampleMs": 15000.870832999994,
+      "emptyOneCorePercent": 1.6395886642298678,
+      "emptySampleMs": 15000.652624999995,
+      "busyOneCorePercent": 27.74449246065165,
+      "transitionOneCorePercent": 1.0655787491111017,
+      "transitionSampleMs": 2999.7782920000027,
+      "settledWaitMs": 24786,
+      "idleOneCorePercent": 1.1026686375524233,
+      "idleIncrementalOneCorePercent": 0.5894984299225178,
+      "idleSampleMs": 60000.708958999996
+    },
+    "control": {
+      "sampleMs": 60000.676959000004,
+      "rawIdleOneCorePercent": 1.4669817818913318,
+      "rssQueries": {
+        "count": 1000,
+        "cpuMs": 3.591,
+        "wallMs": 3.0273750000051223
+      },
+      "fullMemoryQueries": {
+        "count": 100,
+        "cpuMs": 0.255,
+        "wallMs": 0.26283400002284907
+      },
+      "memoryProbeDisabled": true
+    }
+  },
+  "nativeSample": {
+    "cpuUsage": {
+      "baselineOneCorePercent": 0.8390856802793702,
+      "baselineSampleMs": 15001.328583999995,
+      "emptyOneCorePercent": 2.0221943892397207,
+      "emptySampleMs": 15000.288874999998,
+      "busyOneCorePercent": 27.491266313685202,
+      "transitionOneCorePercent": 1.3442257046261437,
+      "transitionSampleMs": 3000.9841250000027,
+      "settledWaitMs": 24775,
+      "idleOneCorePercent": 1.197626735150928,
+      "idleIncrementalOneCorePercent": 0.35854105487155774,
+      "idleSampleMs": 60008.346416000015
+    },
+    "memory": {
+      "initialRss": 198033408,
+      "peakRss": 364298240,
+      "incrementalRss": 166264832,
+      "incrementalHeap": 30280000
+    },
+    "tracePath": ".local/t08-extension-tests-t22-native-idle-sample/native-idle-sample.txt",
+    "limitation": "Stripped runtime symbols and sampling overhead prevent exclusive attribution."
+  },
+  "namedProfile": {
+    "cpuUsage": {
+      "baselineOneCorePercent": 11.075042266394016,
+      "baselineSampleMs": 15000.159458000002,
+      "emptyOneCorePercent": 23.86516786865598,
+      "emptySampleMs": 15001.201834,
+      "busyOneCorePercent": 39.53400503375147,
+      "transitionOneCorePercent": 9.256669026535992,
+      "transitionSampleMs": 3000.885083000001,
+      "settledWaitMs": 24780,
+      "idleOneCorePercent": 13.16542518619842,
+      "idleIncrementalOneCorePercent": 2.0903829198044033,
+      "idleSampleMs": 60000.599207999985
+    },
+    "memory": {
+      "initialRss": 308756480,
+      "peakRss": 549060608,
+      "incrementalRss": 240304128,
+      "incrementalHeap": 51069808
+    },
+    "profileContext": {
+      "kind": "fresh named profile",
+      "account": "shared by Cursor application; credentials not copied",
+      "externalExtensions": 2,
+      "activeExternalExtensions": 1
+    }
+  },
+  "limitations": [
+    "These are diagnostic controls, excluded from qualification.",
+    "The main authenticated Cursor application remained running; no credentials were copied.",
+    "The named-profile driver had external extensions and cannot substitute for the isolated qualification workload."
+  ]
+}
